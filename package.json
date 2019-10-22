@@ -1,0 +1,24 @@
+{
+  "name": "turbocrawl",
+  "version": "0.1.0",
+  "description": "The simple and fast crawling framework.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sunnypurewal/TurboCrawl.git"
+  },
+  "keywords": [
+    "crawl",
+    "scrape",
+    "webcrawl"
+  ],
+  "author": "Sunny Purewal (http://sunnypurewal.me)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sunnypurewal/TurboCrawl/issues"
+  },
+  "homepage": "https://github.com/sunnypurewal/TurboCrawl#readme"
+}
