@@ -2,9 +2,13 @@
   "name": "turbocrawl",
   "version": "0.1.0",
   "description": "The simple and fast crawling framework.",
-  "main": "index.js",
+  "main": "build/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "prestart": "npm run build",
+    "start": "node .",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "tsc -watch"
   },
   "repository": {
     "type": "git",
@@ -20,5 +24,14 @@
   "bugs": {
     "url": "https://github.com/sunnypurewal/TurboCrawl/issues"
   },
-  "homepage": "https://github.com/sunnypurewal/TurboCrawl#readme"
+  "homepage": "https://github.com/sunnypurewal/TurboCrawl#readme",
+  "dependencies": {
+    "getsitemap": "^0.6.1",
+    "hittp": "^0.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.11.2",
+    "@types/typescript": "^2.0.0",
+    "typescript": "^3.6.4"
+  }
 }
