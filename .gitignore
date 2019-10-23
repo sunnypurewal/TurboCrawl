@@ -1,3 +1,5 @@
+src/ui
+.turbocrawl
 build
 .vscode
 apify_storage
