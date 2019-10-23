@@ -1,6 +1,6 @@
 const hittp = require("hittp")
 
-type onURLHandledCallback = (url: URL, html: string|Buffer) => void
+type onURLHandledCallback = (webpage: WebPage) => void
 
 export default class URLHandler {
   handle(url: URL, onURLHandled: onURLHandledCallback) {
