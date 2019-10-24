@@ -1,15 +1,14 @@
 #!/usr/bin/env node
 const VERSION = "0.1.0"
 const NAME = "Turbo Crawl"
-
+const DEFAULT_PORT = 8453
+let port = DEFAULT_PORT
 const log = console.log
 import chalk from "chalk"
-import { fork, exec } from "child_process"
-import Crawler from "../crawler/crawler";
 const { str2url } = require("hittp")
-import { request } from "http"
+import { request, get } from "http"
 import { createWriteStream, readFileSync, unlink } from "fs"
-
+import TurboCrawler from "./turbo_crawler"
 
 if (process.argv[2] === undefined) {
   log(
@@ -27,43 +26,34 @@ const url = str2url(process.argv[2])
 if (url) {
   const options: any = {
     host: "localhost",
-    port: "49202"
+    port: 8453,
+    headers: {"Content-Type": "application/json"},
+    method: "POST"
   }
-  log("Crawling with crawlerd at", `${options.host}:${options.port}`, url.href)
-  const req = request(options, (res) => {
-    res.on("data", (chunk) => {
-      console.log("Client Received", res)
-      req.end()
-    })
-  })
-  req.on("connect", () => {
-    console.log("Request Conneted")
-  })
+  const req = request(options)
+  // req.setHeader("Content-Type", "application/json")
   req.on("error", (err) => {
     console.error(err)
   })
-  req.write(url.href)
-  req.end()
+  req.on("response", (res) => {
+    res.on("data", (chunk) => {
+      console.log("Client received ", chunk.toString())
+    })
+  })
+  req.write(url.href, (err) => {
+    if (err) console.error(err)
+    req.end()
+  })
 } else {
   const command = process.argv[2]
   if (command === "start") {
-    const forked = fork("./src/cli/crawlerd/crawlerd.js", [process.argv[3] || "49202", process.argv[4] || "0.0.0.0"], {detached: true})
-    let pids: any = []
-    try {
-      pids = readFileSync("./.turbocrawl/pid", {encoding: "utf-8"})
-      pids = JSON.parse(pids)
-    } catch (err) {
-      pids = []
-    }
-    pids.push(forked.pid)
-    log(chalk.blue(`The process id is ${forked.pid}`))
-    const outfile = createWriteStream("./.turbocrawl/pid")
-    outfile.write(JSON.stringify(pids), (err) => {
-      if (err) log(chalk.red(err.message))
-      else {
-        outfile.close()
-        process.exit()
-      }
+    const turboCrawler = new TurboCrawler()
+    turboCrawler.start(() => {
+      console.log(chalk.blue(`
+      Turbo Crawl Daemon is now running
+        Listening on port: ${turboCrawler.port}
+        ${turboCrawler.host === "0.0.0.0" ? "and is accessible on your network" : "and is available locally"}
+      `))
     })
   } else if (command === "killall") {
     let pids: any = readFileSync("./.turbocrawl/pid", {encoding: "utf-8"})
@@ -78,7 +68,7 @@ if (url) {
         process.kill(pid)
       }
       unlink("./.turbocrawl/pid", (err) => {
-        process.exit()
+        // process.exit()
       })
     }
   }
