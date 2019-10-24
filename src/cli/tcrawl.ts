@@ -8,7 +8,7 @@ const DEFAULT_HOST = process.env["HOST_TCRAWL"] || "localhost"
 let host = DEFAULT_HOST
 import chalk from "chalk"
 const { str2url } = require("hittp")
-import { start, killall, crawl } from "./tcrawl_commands"
+import { start, killall, crawl, exit } from "./tcrawl_commands"
 
 if (process.argv[2] === undefined) {
   log(
@@ -45,6 +45,7 @@ if (url) {
     ${host === "0.0.0.0" ? "and is accessible on your network" : "and is available locally"}
     `))
     })
-  } else if (command === "killall") {
-    }
+  } else if (command === "exit") {
+    exit(port, host)
   }
+}

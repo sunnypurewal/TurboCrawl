@@ -7,73 +7,58 @@
  * URL and emits a {@link WebPage | "url, html"} object
  */
 import LinkDetector from "../link_detectors/detector";
-import SitemapLinkDetector from "../link_detectors/sitemap/sitemap";
-import URLHandler from "./url_handlers/url_handler";
-import MetaDataParser from "./parsers/metadata";
-import { WebPage, WebPageParser, ParsedPageConsumer } from "./interface";
+import { WebPage, WebPageParser, ParsedPageConsumer, URLHandler } from "./interface";
 import { Readable } from "stream";
-import { createWriteStream } from "fs"
 import FileConsumer from "./consumers/file";
-const hittp = require("hittp")
+import { EventEmitter } from "events";
+const { str2url } = require("hittp")
 
-export default class Crawler {
-  private domain:URL
-  private detectors: LinkDetector[]
-  private urlHandler = new URLHandler()
-  private parsers: WebPageParser[]
-  private consumers: FileConsumer[]
-  private _isPaused: boolean = false
-  public get isPaused() { return this._isPaused }
+export default class Crawler extends EventEmitter {
+  public domain:URL
+  private detector: LinkDetector
+  private urlHandler: URLHandler
+  private parser: WebPageParser
+  private consumer: FileConsumer
+  private _ABORT: boolean = false
   constructor(domain:URL|string, 
-    detectors: LinkDetector[]=[new SitemapLinkDetector()],
-    parsers: WebPageParser[]=[new MetaDataParser()],
-    consumers: FileConsumer[]=[new FileConsumer()]) {
-    if (!(domain instanceof URL)) {
-      this.domain = hittp.str2url(domain)
-    } else {
-      this.domain = domain
-    }
-    if (!this.domain) {
-      throw new Error("Invalid domain sent to Crawler constructor")
-    }
-    this.detectors = detectors.slice()
-    this.parsers = parsers.slice()
-    this.consumers = consumers.slice()
-  }
-  addDetector(d: LinkDetector) {
-    this.detectors.push(d)
-  }
-  addParser(p: WebPageParser) {
-    this.parsers.push(p)
-  }
-  addParsedPageConsumer(c: ParsedPageConsumer) {
-    this.consumers.push(c)
+    detector: LinkDetector,
+    parser: WebPageParser,
+    consumer: FileConsumer,
+    urlHandler: URLHandler) {
+      super()
+      if (!(domain instanceof URL)) {
+        this.domain = str2url(domain)
+      } else {
+        this.domain = domain
+      }
+      if (!this.domain) {
+        throw new Error("Invalid domain sent to Crawler constructor")
+      }
+      this.detector = detector
+      this.parser = parser
+      this.consumer = consumer
+      this.urlHandler = urlHandler
   }
   start() {
-    for (const detector of this.detectors) {
-      detector.stream(this.domain, {startDate: "2019-10-20"}).then((urlstream) => {
-        urlstream.on("data", (urlstring) => {
-          const url = new URL(urlstring)
-          this.urlHandler.stream(url, (url, htmlstream: Readable) => {
-            for (const parser of this.parsers) {
-              parser.stream(url, htmlstream, (url, parserstream) => {
-                for (const consumer of this.consumers) {
-                  consumer.stream(url, parserstream, () => {
-                    
-                  })
-                }
-              })
-            }
+    this.detector.stream(this.domain, {startDate: "2019-10-20"}).then((urlstream) => {
+      urlstream.on("data", (urlstring) => {
+        if (this._ABORT) {
+          this.detector.end(() => {
+            this.emit("exit")
+          })
+        }
+        const url = new URL(urlstring)
+        this.urlHandler.stream(url, (url, htmlstream: Readable) => {
+          this.parser.stream(url, htmlstream, (url, parserstream) => {
+            this.consumer.stream(url, parserstream, () => {
+              // Done the pipeline
+            })
           })
         })
       })
-    }
+    })
   }
-  pause(): boolean {
-    this._isPaused = true
-    return this._isPaused
-  }
-  kill() {
-    
+  exit() {
+    this._ABORT = true
   }
 }

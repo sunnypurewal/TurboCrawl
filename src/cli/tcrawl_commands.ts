@@ -30,8 +30,8 @@ export function crawl(port: number, host: string, url: URL) {
   send(port, host, url.href)
 }
 
-export function pause(port: number, host: string) {
-  send(port, host, "pause")
+export function exit(port: number, host: string) {
+  send(port, host, "exit")
 }
 
 export function start(port: number, host: string, callback: (turbo: TurboCrawler)=>void) {
