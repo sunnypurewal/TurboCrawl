@@ -1,10 +1,13 @@
-import stream from "stream"
+import { Readable } from "stream"
 
-export default interface LinkDetector {
+export default class LinkDetector extends Readable {
   /**
    * 
    * @param URL 
    */
-  stream: (url: URL | string, options: any) => Promise<stream.Readable>
-  end: (callback: ()=>void) => void
+  static create(url: URL | string, options: any): LinkDetector {
+    throw new Error("Not implemented")
+  }
+  // stream: (url: URL | string, options: any) => Promise<Readable>
+  // end: (callback: ()=>void) => void
 }

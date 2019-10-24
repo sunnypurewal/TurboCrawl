@@ -37,19 +37,12 @@ class TurboCrawlerServer extends Server {
 
 export default class TurboCrawler {
   private crawlers: Crawler[] = []
-  private detectors: LinkDetector[] = [new SitemapLinkDetector()]
-  private parsers: WebPageParser[] = [new MetaDataParser()]
-  private consumers: FileConsumer[] = [new FileConsumer()]
-  private urlHandler: URLHandler = new HTTPURLHandler()
-  addDetector(d: LinkDetector) {
-    this.detectors.push(d)
-  }
-  addParser(p: WebPageParser) {
-    this.parsers.push(p)
-  }
-  addParsedPageConsumer(c: ParsedPageConsumer) {
-    this.consumers.push(c)
-  }
+  // addDetector(d: LinkDetector) {
+  //   this.detectors.push(d)
+  // }
+  // addParser(p: WebPageParser) {
+  //   this.parsers.push(p)
+  // }
   private server = createServer()
   public get port(): number {
     return this._port
@@ -80,25 +73,27 @@ export default class TurboCrawler {
       let chunkstring = chunk.toString()
       const url = str2url(chunkstring)
       if (url) {
-        let crawler = new Crawler(url, this.detectors, this.parsers, this.consumers, this.urlHandler)
+        let crawler = new Crawler(url, 
+          SitemapLinkDetector.create(url, {startDate: "2019-10-22"}), 
+          new MetaDataParser(), 
+          new FileConsumer(`./${url.host}.turbocrawl`), 
+          new HTTPURLHandler())
         this.crawlers.push(crawler)
         crawler.on("exit", () => {
+          console.log("Crawler exited", url)
           const index = this.crawlers.findIndex((v, i, arr) => {
             return v.domain.href == url.href
           })
-          console.log("Crawler exited", url)
           if (index !== -1) {
             console.log("But was not found in list")
             this.crawlers.splice(index)
           }
         })
         crawler.start()
-        return
       }
       if (chunkstring === "exit") {
         console.log("Got an exit request")
         for (const crawler of this.crawlers) {
-          console.log(crawler)
           crawler.exit()
         }
         this.server.close((err) => {

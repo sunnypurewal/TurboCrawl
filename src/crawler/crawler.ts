@@ -18,8 +18,7 @@ export default class Crawler extends EventEmitter {
   private detector: LinkDetector
   private urlHandler: URLHandler
   private parser: WebPageParser
-  private consumer: FileConsumer
-  private _ABORT: boolean = false
+  private consumer: ParsedPageConsumer
   constructor(domain:URL|string, 
     detector: LinkDetector,
     parser: WebPageParser,
@@ -40,25 +39,18 @@ export default class Crawler extends EventEmitter {
       this.urlHandler = urlHandler
   }
   start() {
-    this.detector.stream(this.domain, {startDate: "2019-10-20"}).then((urlstream) => {
-      urlstream.on("data", (urlstring) => {
-        if (this._ABORT) {
-          this.detector.end(() => {
-            this.emit("exit")
-          })
-        }
-        const url = new URL(urlstring)
-        this.urlHandler.stream(url, (url, htmlstream: Readable) => {
-          this.parser.stream(url, htmlstream, (url, parserstream) => {
-            this.consumer.stream(url, parserstream, () => {
-              // Done the pipeline
-            })
+    this.detector.on("data", (urlstring) => {
+      const url = new URL(urlstring)
+      this.urlHandler.stream(url, (url, htmlstream: Readable) => {
+        this.parser.stream(url, htmlstream, (url, parserstream) => {
+          this.consumer.stream(url, parserstream, () => {
+            
           })
         })
       })
     })
   }
   exit() {
-    this._ABORT = true
+    this.detector.destroy()
   }
 }
