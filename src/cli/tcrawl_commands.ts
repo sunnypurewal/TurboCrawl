@@ -17,13 +17,10 @@ function send(port: number, host: string, body: string) {
   })
   req.on("response", (res) => {
     res.on("data", (chunk) => {
-      console.log("Client received ", chunk.toString())
     })
   })
-  req.write(body, (err) => {
-    if (err) console.error(err)
-    req.end()
-  })
+  req.write(body)
+  req.end()
 }
 
 export function crawl(port: number, host: string, url: URL) {

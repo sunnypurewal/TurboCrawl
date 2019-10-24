@@ -6,21 +6,20 @@
  * There is a single URLHandler that processes the
  * URL and emits a {@link WebPage | "url, html"} object
  */
-import LinkDetector from "../link_detectors/detector";
-import { WebPage, WebPageParser, ParsedPageConsumer, URLHandler } from "./interface";
-import { Readable } from "stream";
+import { WebPageParser, ParsedPageConsumer, URLHandler } from "./interface";
 import FileConsumer from "./consumers/file";
 import { EventEmitter } from "events";
+import MetaDataParser from "./parsers/metadata";
+import { Readable } from "stream";
 const { str2url } = require("hittp")
 
 export default class Crawler extends EventEmitter {
   public domain:URL
-  private detector: LinkDetector
+  private detector: Readable
   private urlHandler: URLHandler
-  private parser: WebPageParser
   private consumer: ParsedPageConsumer
   constructor(domain:URL|string, 
-    detector: LinkDetector,
+    detector: Readable,
     parser: WebPageParser,
     consumer: FileConsumer,
     urlHandler: URLHandler) {
@@ -34,22 +33,33 @@ export default class Crawler extends EventEmitter {
         throw new Error("Invalid domain sent to Crawler constructor")
       }
       this.detector = detector
-      this.parser = parser
       this.consumer = consumer
       this.urlHandler = urlHandler
   }
+
   start() {
+    this.detector.on("end", () => {
+      console.log("Link detector ended", this.domain.href)
+    })
     this.detector.on("data", (urlstring) => {
-      const url = new URL(urlstring)
-      this.urlHandler.stream(url, (url, htmlstream: Readable) => {
-        this.parser.stream(url, htmlstream, (url, parserstream) => {
-          this.consumer.stream(url, parserstream, () => {
-            
-          })
-        })
+      const url: URL = new URL(urlstring)
+      this.urlHandler.stream(url, (url, htmlstream) => {
+        const parser = new MetaDataParser()
+        htmlstream.pipe(parser).pipe(this.consumer, {end: false})
       })
     })
   }
+
+  pause() {
+    this.detector.pause()
+  }
+
+  resume() {
+    if (this.detector.listenerCount("data") > 0) {
+      this.detector.resume()
+    }
+  }
+
   exit() {
     this.detector.destroy()
   }

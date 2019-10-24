@@ -1,4 +1,4 @@
-import { Readable } from "stream"
+import { Readable, Transform, Writable } from "stream"
 
 export interface URLHandler {
   /**
@@ -11,19 +11,16 @@ export interface URLHandler {
   stream(url: URL, callback: onHTMLStreamCallback): void
 }
 
-export interface WebPageParser {
-  parse(page: WebPage, onPageParsed: onPageParsedCallback): void
-  /**
-   * 
-   * @param htmlstream A stream.Readable stream of valid HTML
-   * @param callback Function that handles the stream.Readable result of parsing the HTML
-   */
-  stream(url: URL, htmlstream: Readable, callback: onParserStreamCallback): void
+export class WebPageParser extends Transform {
+  static create(url: URL, htmlstream: Readable, options?: any): WebPageParser {
+    throw new Error("Not implemented")
+  }
 }
 
-export interface ParsedPageConsumer {
-  consume(parsedPage: ParsedWebPage, callback: onParsedPageConsumedCallback): void
-  stream(url: URL, parsedPageStream: Readable, callback: onParsedPageStreamedCallback): void
+export class ParsedPageConsumer extends Writable {
+  static create(url: URL, parsedPageStream: Readable, options?: any): ParsedPageConsumer {
+    throw new Error("Not implemented")
+  }
 }
 
 export interface ParsedWebPage {

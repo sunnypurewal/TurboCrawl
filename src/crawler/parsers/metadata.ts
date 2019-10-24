@@ -1,5 +1,4 @@
-import { WebPage, WebPageParser, onPageParsedCallback, onParserStreamCallback } from "../interface"
-import {Readable, Transform, TransformCallback } from "stream"
+import {Transform, TransformCallback } from "stream"
 
 //implement HTMLHandler
 //then add it to crawler.htmlHandlers as default handler
@@ -8,21 +7,7 @@ import {Readable, Transform, TransformCallback } from "stream"
  * This is the default WebPageParser. 
  * Custom parsers should extend this class.
  */
-export default class MetaDataParser implements WebPageParser {
-  parse(page: WebPage, onPageParsed: onPageParsedCallback) {
-    throw new Error(`${__filename} handle() Not Implemented`)
-  }
-  /**
-   * Extracts metadata from the HTML and returns a stream of MetaData objects  
-   * @param htmlstream A stream.Readable stream of valid HTML
-   * @param callback Function that handles the stream.Readable result of parsing the HTML
-   */
-  stream(url: URL, htmlstream: Readable, callback: onParserStreamCallback) {
-    callback(url, htmlstream.pipe(new MetadataStream()))
-  }
-}
-
-class MetadataStream extends Transform {
+export default class MetadataParser extends Transform {
   open: any
   lastChunk: any
   constructor(options?: any) {

@@ -1,48 +1,15 @@
 import Crawler from "../crawler/crawler"
 import { createServer, IncomingMessage, ServerResponse, Server, RequestListener } from "http"
-import chalk from "chalk"
-import { createWriteStream } from "fs"
 import { Socket } from "net"
 import { PORT, HOST } from "./env"
-import SitemapLinkDetector from "../link_detectors/sitemap/sitemap"
-import LinkDetector from "../link_detectors/detector"
-import { WebPageParser, URLHandler, ParsedPageConsumer } from "../crawler/interface"
+import SitemapLinkDetector from "../link_detectors/sitemap"
 import MetaDataParser from "../crawler/parsers/metadata"
 import FileConsumer from "../crawler/consumers/file"
 import HTTPURLHandler from "../crawler/url_handlers/url_handler"
-import { ServerOptions } from "https"
 const { str2url } = require("hittp")
-
-// const file = createWriteStream("./.turbocrawl/crawlerd", {flags: "a"})
-
-class TurboCrawlerServer extends Server {
-  private detectors: LinkDetector[]
-  private parsers: WebPageParser[]
-  private consumers: FileConsumer[]
-  private urlHandler: URLHandler
-  constructor(
-    detectors: LinkDetector[],
-    parsers: WebPageParser[],
-    consumers: FileConsumer[],
-    urlHandler: URLHandler,
-    options: ServerOptions, 
-    listener?: RequestListener) {
-    super(options, listener)
-    this.detectors = detectors
-    this.parsers = parsers
-    this.consumers = consumers
-    this.urlHandler = urlHandler
-  }
-}
 
 export default class TurboCrawler {
   private crawlers: Crawler[] = []
-  // addDetector(d: LinkDetector) {
-  //   this.detectors.push(d)
-  // }
-  // addParser(p: WebPageParser) {
-  //   this.parsers.push(p)
-  // }
   private server = createServer()
   public get port(): number {
     return this._port
@@ -73,15 +40,17 @@ export default class TurboCrawler {
       let chunkstring = chunk.toString()
       const url = str2url(chunkstring)
       if (url) {
-        let crawler = new Crawler(url, 
-          SitemapLinkDetector.create(url, {startDate: "2019-10-22"}), 
+        console.log("Turbo Crawl starting crawl on ", url.href);
+        
+        let crawler = new Crawler(url,
+          SitemapLinkDetector.create(url, {startDate: Date.parse("2019-10-21")}),
           new MetaDataParser(), 
-          new FileConsumer(`./${url.host}.turbocrawl`), 
+          FileConsumer.create(`./${url.host}.turbocrawl`, {flags: "a"}), 
           new HTTPURLHandler())
         this.crawlers.push(crawler)
         crawler.on("exit", () => {
           console.log("Crawler exited", url)
-          const index = this.crawlers.findIndex((v, i, arr) => {
+          const index = this.crawlers.findIndex((v) => {
             return v.domain.href == url.href
           })
           if (index !== -1) {

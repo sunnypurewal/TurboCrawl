@@ -1,20 +1,10 @@
 import { ParsedPageConsumer, ParsedWebPage, onParsedPageConsumedCallback, onParsedPageStreamedCallback } from "../interface";
-import { Readable } from "stream";
+import { Readable, Writable } from "stream";
 import { createWriteStream, PathLike, WriteStream } from "fs"
 
 
-export default class FileConsumer implements ParsedPageConsumer {
-  // private filename: PathLike
-  private filestream: WriteStream
-  constructor(filename: PathLike) {
-    // this.filename = filename
-    this.filestream = createWriteStream(filename, {flags: "a"})
+export default class FileConsumer extends Writable {
+  static create(filename: string, options?: any): FileConsumer {
+    return createWriteStream(filename, options)
   }
-  consume(parsedPage: ParsedWebPage, callback: onParsedPageConsumedCallback): void {
-    throw new Error("Method not implemented.");
-  }  
-  stream(url: URL, parsedPageStream: Readable, callback: onParsedPageStreamedCallback): void {
-    parsedPageStream.pipe(this.filestream)
-  }
-
 }

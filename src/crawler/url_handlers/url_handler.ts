@@ -18,7 +18,7 @@ export default class HTTPURLHandler implements URLHandler {
     hittp.stream(urlcopy).then((htmlstream: stream.Readable) => {
       process.nextTick(() => {
         callback(urlcopy, htmlstream)
-      })         
+      })
     })
   }
 }
