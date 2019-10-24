@@ -33,7 +33,8 @@ class MetadataStream extends Transform {
     this.lastChunk = null
   }
 
-  _transform(chunk: any, encoding: string, callback: TransformCallback) { 
+  _transform(c: any, encoding: string, callback: TransformCallback) {
+    let chunk = c.toString()
     let opens = chunk.matchAll(/<\s*meta/gi)
     this.open = opens.next()
     while (!this.open.done) {
