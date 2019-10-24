@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 const VERSION = "0.1.0"
 const NAME = "Turbo Crawl"
-const DEFAULT_PORT = 8453
-let port = DEFAULT_PORT
 const log = console.log
+const DEFAULT_PORT = parseInt(process.env["PORT_TCRAWL"] || "8088")
+let port = DEFAULT_PORT
+const DEFAULT_HOST = process.env["HOST_TCRAWL"] || "localhost"
+let host = DEFAULT_HOST
 import chalk from "chalk"
 const { str2url } = require("hittp")
-import { request, get } from "http"
-import { createWriteStream, readFileSync, unlink } from "fs"
-import TurboCrawler from "./turbo_crawler"
+import { start, killall, crawl } from "./tcrawl_commands"
 
 if (process.argv[2] === undefined) {
   log(
@@ -24,52 +24,27 @@ if (process.argv[2] === undefined) {
 
 const url = str2url(process.argv[2])
 if (url) {
-  const options: any = {
-    host: "localhost",
-    port: 8453,
-    headers: {"Content-Type": "application/json"},
-    method: "POST"
-  }
-  const req = request(options)
-  // req.setHeader("Content-Type", "application/json")
-  req.on("error", (err) => {
-    console.error(err)
-  })
-  req.on("response", (res) => {
-    res.on("data", (chunk) => {
-      console.log("Client received ", chunk.toString())
-    })
-  })
-  req.write(url.href, (err) => {
-    if (err) console.error(err)
-    req.end()
-  })
+  crawl(port, host, url)
 } else {
   const command = process.argv[2]
   if (command === "start") {
-    const turboCrawler = new TurboCrawler()
-    turboCrawler.start(() => {
-      console.log(chalk.blue(`
-      Turbo Crawl Daemon is now running
-        Listening on port: ${turboCrawler.port}
-        ${turboCrawler.host === "0.0.0.0" ? "and is accessible on your network" : "and is available locally"}
-      `))
+    let arg = process.argv[3]
+    if (arg) {
+      let portnum = parseInt(arg)
+      if (isNaN(portnum)) throw new Error(`Invalid Port ${arg}`)
+      else port = portnum
+    }
+    arg = process.argv[4]
+    if (arg) host = arg
+    start(port, host, (turbo) => {
+      port = turbo.port
+      host = turbo.host
+      log(chalk.blue(`
+  Turbo Crawl Daemon is now running
+    Listening on port: ${port}
+    ${host === "0.0.0.0" ? "and is accessible on your network" : "and is available locally"}
+    `))
     })
   } else if (command === "killall") {
-    let pids: any = readFileSync("./.turbocrawl/pid", {encoding: "utf-8"})
-    if (pids.length === 0) {
-      log(chalk.green(`
-  Turbo Crawl is not running
-  `))
-    } else {
-      pids = JSON.parse(pids)
-      log(chalk.red(`Killing ${pids.length} processes`))
-      for (const pid of pids) {
-        process.kill(pid)
-      }
-      unlink("./.turbocrawl/pid", (err) => {
-        // process.exit()
-      })
     }
   }
-}

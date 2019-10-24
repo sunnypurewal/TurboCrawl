@@ -3,10 +3,10 @@ import { createServer, IncomingMessage, ServerResponse } from "http"
 import chalk from "chalk"
 import { createWriteStream } from "fs"
 import { Socket } from "net"
+import { PORT, HOST } from "./env"
+const { str2url } = require("hittp")
 
-const file = createWriteStream("./.turbocrawl/crawlerd", {flags: "a"})
-const DEFAULT_PORT = 8453
-const DEFAULT_HOST = "127.0.0.1"
+// const file = createWriteStream("./.turbocrawl/crawlerd", {flags: "a"})
 
 export default class TurboCrawler {
   private server = createServer()
@@ -19,10 +19,12 @@ export default class TurboCrawler {
   private _port: number
   private _host: string
   
-  constructor(port: number = DEFAULT_PORT, host: string = DEFAULT_HOST) {
+  constructor(port: number = PORT, host: string = HOST) {
     this._port = port
     this._host = host
   }
+
+  private _crawlers: Crawler[] = []
 
   start(callback: ()=>void) {
     this.server.on("request", this.onrequest)
@@ -36,9 +38,16 @@ export default class TurboCrawler {
 
   onrequest(req: IncomingMessage, res: ServerResponse) {
     req.on("data", (chunk) => {
-      let url = chunk.toString()
-      let crawler = new Crawler(url)
-      crawler.start()
+      let chunkstring = chunk.toString()
+      const url = str2url(chunkstring)
+      if (url) {
+        let crawler = new Crawler(url)
+        crawler.start()
+        return
+      }
+      if (chunkstring === "pause") {
+
+      }
     })
     req.on("end", () => {
       res.writeHead(200, {"Content-Type": "application/json"})

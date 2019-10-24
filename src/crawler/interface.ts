@@ -1,6 +1,12 @@
 import { Readable } from "stream"
 
 export interface URLHandler {
+  /**
+   * Implement the handle method to fetch the contents of the URL
+   * and return an HTML representation
+   * @param {URL} url URL that needs to be handled
+   * @param callback and return an  in this callback 
+   */
   handle(url: URL, callback: onURLHandledCallback): void
   stream(url: URL, callback: onHTMLStreamCallback): void
 }

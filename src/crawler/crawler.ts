@@ -1,3 +1,11 @@
+/**
+ * The Crawler class is responsible for crawling a single website.
+ * It takes a root domain as input (e.g. "reuters.com")
+ * @remarks
+ * The root domain is run through each {@link LinkDetector}
+ * There is a single URLHandler that processes the
+ * URL and emits a {@link WebPage | "url, html"} object
+ */
 import LinkDetector from "../link_detectors/detector";
 import SitemapLinkDetector from "../link_detectors/sitemap/sitemap";
 import URLHandler from "./url_handlers/url_handler";
@@ -14,6 +22,8 @@ export default class Crawler {
   private urlHandler = new URLHandler()
   private parsers: WebPageParser[]
   private consumers: FileConsumer[]
+  private _isPaused: boolean = false
+  public get isPaused() { return this._isPaused }
   constructor(domain:URL|string, 
     detectors: LinkDetector[]=[new SitemapLinkDetector()],
     parsers: WebPageParser[]=[new MetaDataParser()],
@@ -49,7 +59,7 @@ export default class Crawler {
               parser.stream(url, htmlstream, (url, parserstream) => {
                 for (const consumer of this.consumers) {
                   consumer.stream(url, parserstream, () => {
-                    console.log("Wrote something to file")
+                    
                   })
                 }
               })
@@ -59,10 +69,11 @@ export default class Crawler {
       })
     }
   }
-  pause() {
-
+  pause(): boolean {
+    this._isPaused = true
+    return this._isPaused
   }
   kill() {
-
+    
   }
 }

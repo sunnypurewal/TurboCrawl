@@ -42,12 +42,20 @@ class MetadataStream extends Transform {
       // console.log(openval.input.slice(openval.index, openval.index+100))
       // break
       const closeindex = openval.input.indexOf(">", openval.index)
-      let tag = openval.input.slice(openval.index, closeindex+1)
-      let propertyIndex = tag.indexOf("property=\"")
+      let tag: string = openval.input.slice(openval.index, closeindex+1)
       let contentIndex = tag.indexOf("content=\"")
-      let property = tag.slice(propertyIndex+10, tag.indexOf("\"", propertyIndex+10))
       let content = tag.slice(contentIndex+9, tag.indexOf("\"", contentIndex+9))
-      this.push(`${property}===${content}`)
+      let propertyIndex = tag.indexOf("property=\"")
+      if (propertyIndex !== -1) {
+        let property = tag.slice(propertyIndex+10, tag.indexOf("\"", propertyIndex+10))
+        this.push(JSON.stringify({property, content}))
+      } else {
+        let nameIndex = tag.indexOf("name=\"")
+        if (nameIndex !== -1) {
+          let name = tag.slice(nameIndex+6, tag.indexOf("\"", nameIndex+6))
+          this.push(JSON.stringify({name, content}))
+        }
+      }
       this.open = opens.next()
     }
     callback()
