@@ -2,10 +2,9 @@ import Crawler from "../crawler/crawler"
 import { createServer, IncomingMessage, ServerResponse } from "http"
 import { Socket } from "net"
 import { PORT, HOST } from "./env"
-import SitemapLinkDetector from "../link_detectors/sitemap"
-import MetaDataParser from "../crawler/parsers/metadata"
 import FileConsumer from "../crawler/consumers/file"
-import HTTPURLHandler from "../crawler/url_handlers/url_handler"
+import chalk from "chalk"
+import { accessSync, mkdirSync } from "fs"
 const { str2url } = require("hittp")
 
 export default class TurboCrawler {
@@ -26,6 +25,12 @@ export default class TurboCrawler {
   }
 
   start(callback: ()=>void) {
+    let path = "./.turbocrawl/crawled"
+    try {
+      accessSync(path)
+    } catch (err) {
+      mkdirSync(path, {recursive: true})
+    }
     this.server.on("request", this.onrequest.bind(this))
     this.server.on("close", this.onclose)
     this.server.on("connect", this.onconnect)

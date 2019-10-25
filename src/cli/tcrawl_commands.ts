@@ -1,27 +1,69 @@
 import TurboCrawler from "./turbo_crawler"
-import { readFileSync, unlink } from "fs"
+import { readFileSync, unlink, accessSync, mkdirSync, readdirSync } from "fs"
 import { request } from "http"
 const { str2url } = require("hittp")
 const shuffle = require("knuth-shuffle").knuthShuffle
+import GenerateReddit from "../scripts/redditpage"
+import GenerateCountries from "../scripts/country"
+import { join } from "path"
 
-export function country(port: number, host: string, c: string, callback?: () => void) {
-  let domains: Buffer|string|any = readFileSync(`./.turbocrawl/default/countries/${c}`)
-  domains = domains.toString().split("\n")
-  domains = domains.filter((d: string) => d.length > 0)
-  domains = domains.map((d: string) => str2url(d))
+
+export function genreddit(callback: (count: number) => void) {
+  GenerateReddit(callback)
+}
+
+export function gencountries(callback: (count: number) => void) {
+  GenerateCountries(callback)
+}
+
+function _country(port: number, host: string, path: string, country: string, callback?: () => void) {
+  let domains = _domainsFromFile(`${path}/${country}`)
   shuffle(domains)
   bulkCrawl(port, host, domains)
 }
 
-export function random(port: number, host: string, callback: (url?: URL) => void) {
-  let domains: Buffer|string|any = readFileSync("./.turbocrawl/default/domains.json")
-  domains = domains.toString()
+export function country(port: number, host: string, country: string, callback?: () => void) {
+  let path = "./.turbocrawl/default/countries"
   try {
-    domains = JSON.parse(domains)
+    accessSync(path)
   } catch (err) {
-    callback()
+    mkdirSync(path, {recursive: true})
+  }
+
+  let countriesjson = "./.turbocrawl/default/countries.json"
+  try {
+    accessSync(countriesjson)
+  } catch (err) {
+    GenerateCountries((count) => {
+      _country(port, host, path, country, callback)
+    })
     return
   }
+  let filenames = readdirSync(path).filter((d) => {
+    return d !== undefined && d !== null && d != path
+  })
+  if (filenames.length === 0) {
+    GenerateCountries((count) => {
+      _country(port, host, path, country, callback)
+    })
+  } else {
+    _country(port, host, path, country, callback)
+  }
+}
+
+function _domainsFromFile(path: string): URL[] {
+  let domains: Buffer|string|any = readFileSync(path)
+  domains = domains.toString().split("\n")
+  domains = domains.filter((d: string) => d.length > 0)
+  domains = domains.map((d: string) => str2url(d))
+  return domains
+}
+
+function _random(port: number, host: string, path: string, filenames: string[], callback: (url?: URL) => void) {
+  let random = Math.floor(Math.random() * filenames.length)
+  let filename = filenames[random]
+  console.log(path, filename)
+  let domains = _domainsFromFile(`${path}/${filename}`)
   if (domains && domains.length > 0) {
     let random = Math.floor(Math.random() * domains.length)
     let domain = domains[random]
@@ -36,6 +78,28 @@ export function random(port: number, host: string, callback: (url?: URL) => void
     }
   } else {
     callback()
+  }
+}
+
+export function random(port: number, host: string, callback: (url?: URL) => void) {
+  let path = "./.turbocrawl/default/domains"
+  try {
+    accessSync(path)
+  } catch (err) {
+    mkdirSync(path, {recursive: true})
+  }
+  let filenames = readdirSync(path).filter((d) => {
+    return d !== undefined && d !== null && d != path
+  })
+  if (filenames.length === 0) {
+    GenerateReddit((count) => {
+      let filenames = readdirSync(path).filter((d) => {
+        return d !== undefined && d !== null && d != path
+      })
+      _random(port, host, path, filenames, callback)
+    })
+  } else {
+    _random(port, host, path, filenames, callback)
   }
 }
 export function pause(port: number, host: string, url: URL, callback: (success: boolean) => void) {

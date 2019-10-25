@@ -36,7 +36,7 @@
     "@types/uuid": "^3.4.5",
     "chalk": "^2.4.2",
     "express": "^4.17.1",
-    "getsitemap": "^0.7.9",
+    "getsitemap": "^0.7.10",
     "hittp": "^0.5.6",
     "ndjson": "^1.5.0",
     "uuid": "^3.3.3"

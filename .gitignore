@@ -8,7 +8,6 @@ apify_storage
 .DS_Store
 .cache
 .data
-data
 local_modules
 .gitmodules
 .playground

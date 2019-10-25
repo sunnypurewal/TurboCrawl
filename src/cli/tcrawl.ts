@@ -8,10 +8,16 @@ const DEFAULT_HOST = process.env["HOST_TCRAWL"] || "localhost"
 let host = DEFAULT_HOST
 import chalk from "chalk"
 const { str2url } = require("hittp")
-import { start, crawl, bulkCrawl, exit, list, pause, end, resume, random, country } from "./tcrawl_commands"
-import { readFileSync } from "fs"
+import { start, crawl, bulkCrawl, exit, list, pause, end, resume, random, country, genreddit, gencountries } from "./tcrawl_commands"
+import { readFileSync, accessSync, mkdirSync } from "fs"
 
 let COUNTRIES: string[] = []
+
+try {
+  accessSync("./.turbocrawl/")
+} catch (err) {
+  mkdirSync("./.turbocrawl/crawled", {recursive: true})
+}
 
 if (process.argv[2] === undefined) {
   log(
@@ -73,7 +79,9 @@ if (url) {
     const url = str2url(arg)
     if (url) {
       end(port, host, url, (success) => {
-        log((success ? chalk.greenBright("Turbo Crawl will end") : chalk.redBright("Turbo Crawl failed to end")), url.href)
+        log((success ? 
+          chalk.greenBright("Turbo Crawl will end") 
+          : chalk.redBright("Turbo Crawl failed to end")), url.href)
       })
     }
   } else if (command === "resume") {
@@ -81,10 +89,31 @@ if (url) {
     const url = str2url(arg)
     if (url) {
       resume(port, host, url, (success) => {
-        log((success ? chalk.greenBright("Turbo Crawl will resume") : chalk.redBright("Turbo Crawl failed to resume")), url.href)
+        log((success ? 
+          chalk.greenBright("Turbo Crawl will resume") 
+          : chalk.redBright("Turbo Crawl failed to resume")), url.href)
       })
     }
-  } else if (command === "crawl") {
+  } else if (command === "generate") {
+    let arg = process.argv[3]
+    if (arg === "reddit") {
+      log("Scraping", chalk.bold("/r/politics white list"), "for domain names")
+      genreddit((count) => {
+        log(count > 0 ? 
+          chalk.greenBright(`Scraped ${count} domain names from /r/politics white list.`)
+          : chalk.redBright("Failed to scrape anything from /r/politics white list"))
+      })
+    } else if (arg === "countries") {
+      log("Scraping", chalk.bold("Wikipedia Category:News websites by country"), "for domain names")
+      gencountries((count) => {
+        log(count > 0 ? 
+          chalk.greenBright(`Scraped ${count} domain names from Wikipedia Category: ${chalk.bold("News websites by country")}`)
+          : chalk.redBright(`Failed to scrape anything from Wikipedia Category: ${chalk.bold("News websites by country")}`))
+      })
+    }
+  }
+  
+  else if (command === "crawl") {
     let arg = process.argv[3]
     if (arg === "random") {
       random(port, host, (url) => {
@@ -101,16 +130,9 @@ if (url) {
         bulkCrawl(port, host, domains)
       }
     } else {
-      COUNTRIES = JSON.parse(readFileSync("./.turbocrawl/default/countries.json").toString()) || []
-      let index = -1
-      for (let i = 0; i < COUNTRIES.length; i++) {
-        const c = COUNTRIES[i]
-        arg = arg.toLowerCase()
-        if (arg == c.toLowerCase()) {
-          log(chalk.greenBright(`Turbo Crawl will crawl ${c} news` ))
-          country(port, host, c)
-        }
-      }
+      country(port, host, arg.toLowerCase(), () => {
+        log(chalk.greenBright(`Turbo Crawl will crawl ${arg} news` ))
+      })
     }
   }
 }
