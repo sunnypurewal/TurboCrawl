@@ -17,25 +17,17 @@ const hittp = require("hittp")
 
 export default class Crawler extends EventEmitter {
   public domain:URL
-  private detector: Readable
+  private detector: SitemapLinkDetector
   private urlHandler: URLHandler
   private consumer: ParsedPageConsumer
-  constructor(domain:URL|string, 
-    // detector: Readable,
-    // parser: WebPageParser,
-    consumer: FileConsumer,
-    // urlHandler: URLHandler
+  constructor(domain:string, consumer: FileConsumer,
     ) {
       super()
-      if (!(domain instanceof URL)) {
-        this.domain = hittp.str2url(domain)
-      } else {
-        this.domain = domain
-      }
+      this.domain = hittp.str2url(domain)
       if (!this.domain) {
         throw new Error("Invalid domain sent to Crawler constructor")
       }
-      this.detector = SitemapLinkDetector.create(domain, {startDate: "2019-10-21"})
+      this.detector = new SitemapLinkDetector(this.domain.host, {startDate: "2019-10-21"})
       this.consumer = consumer
       this.urlHandler = new HTTPURLHandler(this.domain)
   }
@@ -73,6 +65,7 @@ export default class Crawler extends EventEmitter {
     this.detector.destroy()
     this.consumer.destroy()
     this.urlHandler.cancel(this.domain.host)
+    this.detector.cancel()
     this.emit("exit")
   }
 }

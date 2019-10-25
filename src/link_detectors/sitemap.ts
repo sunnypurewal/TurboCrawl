@@ -1,4 +1,4 @@
-import { Transform, Readable, TransformCallback } from "stream"
+import { Transform, Readable, TransformCallback, Writable, PassThrough } from "stream"
 const { SiteMapper } = require("getsitemap")
 const { str2url } = require("hittp")
 
@@ -18,11 +18,16 @@ class GetSitemapTransformStream extends Transform {
   }
 }
 
-export default class SitemapLinkDetector {
-  static create(domain: URL | string, options: any): Readable {
+export default class SitemapLinkDetector extends PassThrough {
+  private stream: Readable|undefined
+  private mapper: any
+  constructor(domain: string, options: any) {
+    super(options)
     const transformer = new GetSitemapTransformStream(options)
-    const mapper = new SiteMapper()
-    const sitemapstream: Readable = mapper.map(domain, options.startDate)
-    return sitemapstream.pipe(transformer)
+    this.mapper = new SiteMapper(domain)
+    this.mapper.map(options.startDate).pipe(this).pipe(transformer)
+  }
+  cancel() {
+    this.mapper.cancel()
   }
 }

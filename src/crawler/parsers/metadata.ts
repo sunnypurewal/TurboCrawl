@@ -45,4 +45,9 @@ export default class MetadataParser extends Transform {
     }
     callback()
   }
+
+  _destroy(error: Error | null, callback: (error: Error | null) => void) {
+    console.log("Destroying metadata parser", error)
+    callback(error)
+  }
 }

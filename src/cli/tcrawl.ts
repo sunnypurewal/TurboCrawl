@@ -8,7 +8,8 @@ const DEFAULT_HOST = process.env["HOST_TCRAWL"] || "localhost"
 let host = DEFAULT_HOST
 import chalk from "chalk"
 const { str2url } = require("hittp")
-import { start, crawl, exit, list, pause, end, resume } from "./tcrawl_commands"
+import { start, crawl, bulkCrawl, exit, list, pause, end, resume, random } from "./tcrawl_commands"
+import { readFileSync } from "fs"
 
 if (process.argv[2] === undefined) {
   log(
@@ -55,7 +56,7 @@ if (url) {
     list(port, host, (crawlerstrings) => {
       log(`
   Crawlers:    
-    ${crawlerstrings.length > 0 ? crawlerstrings : "None. You can use the following command to start a crawl:\n\ttcrawl www.someurlhere.com"}`)
+    ${crawlerstrings.length > 0 ? crawlerstrings.join("\n\t\t") : "None. You can use the following command to start a crawl:\n\ttcrawl www.someurlhere.com"}`)
     })
   } else if (command === "pause") {
     let arg = process.argv[3]
@@ -80,6 +81,23 @@ if (url) {
       resume(port, host, url, (success) => {
         log((success ? chalk.greenBright("Turbo Crawl will resume") : chalk.redBright("Turbo Crawl failed to resume")), url.href)
       })
+    }
+  } else if (command === "crawl") {
+    let arg = process.argv[3]
+    if (arg === "random") {
+      random(port, host, (url) => {
+        log((url ? chalk.greenBright(`Turbo Crawl will crawl ${url.href}}`) : chalk.redBright("Turbo Crawl failed to random crawl")))
+      })
+    } else if (arg === "-f") {
+      arg = process.argv[4]
+      if (arg && arg.length > 0) {
+        let domains: Buffer|string|any = readFileSync(arg)
+        domains = domains.toString()
+        domains = JSON.parse(domains)
+        domains = domains.map((d: string) => { return str2url(d) }) as URL[]
+        log(`Crawling ${chalk.greenBright(domains.length.toString())} domains`)
+        bulkCrawl(port, host, domains)
+      }
     }
   }
 }

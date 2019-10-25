@@ -87,11 +87,25 @@ export default class TurboCrawler {
           response.statusCode = 400
           response.end()
         }
-        if (urlcopy === "/crawl") {
-          let url = str2url(body["url"])
-          if (url) {
-            const crawler = new Crawler(url,
-              FileConsumer.create(`./.turbocrawl/${url.host}`, {flags: "a"})
+        if (urlcopy === "/") {
+          let urls: URL[] = []
+          if (body.length) {
+            const random = Math.floor(Math.random() * body.length)
+            for (let urlstring of body.slice(random, random+5)) {
+              let url = str2url(urlstring)
+              if (url) {
+                urls.push(url)
+              }
+            }
+          } else {
+            let url = str2url(body["url"])
+            if (url) {
+              urls.push(url)
+            }
+          }
+          for (let url of urls) {
+            const crawler = new Crawler(url.href,
+              FileConsumer.create(`./.turbocrawl/crawled/${url.host}`, {flags: "a"})
               )
               this.crawlers.push(crawler)
               crawler.on("exit", () => {
@@ -126,8 +140,8 @@ export default class TurboCrawler {
               return v.domain.host === url.host
             })
             if (index !== -1) {
-              const deleted = this.crawlers.splice(index, 1)[0]
-              deleted.pause()
+              const paused = this.crawlers[index]
+              paused.pause()
               response.statusCode = 200
               response.end()
             } else {
