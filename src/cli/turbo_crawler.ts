@@ -69,7 +69,7 @@ export default class TurboCrawler {
             response.write(crawlerstrings)
             response.end()
           } catch (err) {
-            console.error(err)
+            // console.error(err)
             response.statusCode = 400
             response.end()
           }
@@ -87,6 +87,7 @@ export default class TurboCrawler {
       if (method === "POST") {
         const contentType = headers["content-type"] || ""
         if (contentType === "application/json") {
+          response.setHeader("content-type", "application/json")
           body = JSON.parse(body)
         } else {
           response.statusCode = 400
@@ -109,18 +110,19 @@ export default class TurboCrawler {
             }
           }
           console.log("Crawling", urls.length, "URLs")
+          let path = "./.turbocrawl/crawled"
           for (let url of urls) {
-            const crawler = new Crawler(url.href,
-              FileConsumer.create(`./.turbocrawl/crawled/${url.host}`, {flags: "a"})
-              )
-              this.crawlers.push(crawler)
-              crawler.on("exit", () => {
-                console.log("Crawler exited", url.href)
-              })
-              crawler.start()
-              response.statusCode = 200
-              response.end()
+            let filepath = `${path}/${url.host}.ndjson`
+            const crawler = new Crawler(url.href, FileConsumer.create(filepath, {flags: "w"}))
+            this.crawlers.push(crawler)
+            crawler.on("exit", () => {
+              console.log("Crawler exited", url.href)
+            })
+            crawler.start()
           }
+          response.statusCode = 200
+          response.write(JSON.stringify({success:true}))
+          response.end()
         } else if (urlcopy === "/end") {
           let url = str2url(body["url"])
           console.log("Received end request", url.href)

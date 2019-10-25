@@ -15,6 +15,7 @@ import SitemapLinkDetector from "../link_detectors/sitemap";
 import HTTPURLHandler from "./url_handlers/url_handler";
 const hittp = require("hittp")
 
+hittp.configure({cachePath: "./.cache"})
 export default class Crawler extends EventEmitter {
   public domain:URL
   private detector: SitemapLinkDetector
@@ -33,12 +34,12 @@ export default class Crawler extends EventEmitter {
   }
 
   start() {
-    this.detector.on("end", () => {
-      console.log("Link detector ended", this.domain.href)
-    })
-    this.detector.on("close", () => {
-      console.log("Link detector closed", this.domain.href)
-    })
+    // this.detector.on("end", () => {
+    //   console.log("Link detector ended", this.domain.href)
+    // })
+    // this.detector.on("close", () => {
+    //   console.log("Link detector closed", this.domain.href)
+    // })
     this.detector.on("data", (chunk) => {
       let chunkstring = chunk.toString()
       const url: URL = hittp.str2url(chunkstring.split("||")[0])
@@ -46,8 +47,6 @@ export default class Crawler extends EventEmitter {
         if (htmlstream) {
           const parser = new MetaDataParser()
           htmlstream.pipe(parser).pipe(this.consumer, {end: false})
-        } else if (err) {
-          console.error(err)
         }
       })
     })
@@ -66,7 +65,7 @@ export default class Crawler extends EventEmitter {
   }
 
   exit() {
-    console.log("Link detector destroy", this.domain.href)
+    // console.log("Link detector destroy", this.domain.href)
     this.detector.cancel()
     this.detector.destroy()
     this.consumer.destroy()

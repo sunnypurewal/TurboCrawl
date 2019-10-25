@@ -62,13 +62,11 @@ function _domainsFromFile(path: string): URL[] {
 function _random(port: number, host: string, path: string, filenames: string[], callback: (url?: URL) => void) {
   let random = Math.floor(Math.random() * filenames.length)
   let filename = filenames[random]
-  console.log(path, filename)
   let domains = _domainsFromFile(`${path}/${filename}`)
   if (domains && domains.length > 0) {
     let random = Math.floor(Math.random() * domains.length)
     let domain = domains[random]
     let url = str2url(domain)
-    console.log("Random URL", url ? url.href : "404")
     if (url) {
       crawl(port, host, url, (success) => {
         callback(success ? url : undefined)
@@ -201,30 +199,36 @@ export function bulkCrawl(port: number, host: string, urls: URL[], callback?: (s
   req.end()
 }
 
-export function crawl(port: number, host: string, url: URL, callback: (success: boolean) => void) {
+export function crawl(port: number, host: string, url: URL, callback: (success: boolean, errCode?: number) => void) {
   const req = request({
     host,
     port,
     method: "POST",
     headers: {"content-type": "application/json"}
   }, (res) => {
-    let body: any = []
-    res.on("error", (err) => {
-      console.error(err)
-    }).on("data", (chunk) => {
-      body.push(chunk)
-    }).on("end", () => {
-      body = Buffer.concat(body).toString()
-      const contentType = res.headers["content-type"] || ""
-      if (contentType === "application/json") {
-        try {
-          body = JSON.parse(body)
-          process.nextTick(() => {callback(body.success)})
-        } catch (err) {
-          console.error(err)
+    if (res.statusCode! >= 200 && res.statusCode! <= 299) {
+      let body: any = []
+      res.on("error", (err) => {
+        console.error(err)
+      }).on("data", (chunk) => {
+        body.push(chunk)
+      }).on("end", () => {
+        body = Buffer.concat(body).toString()
+        const contentType = res.headers["content-type"] || ""
+        if (contentType === "application/json") {
+          try {
+            body = JSON.parse(body)
+            process.nextTick(() => {callback(body.success)})
+          } catch (err) {
+            console.error(err)
+          }
         }
-      }
-    })
+      })
+    } else {
+      process.nextTick(() => {
+        callback(false, res.statusCode)
+      })
+    }
   })
   req.write(JSON.stringify({url: url.href}))
   req.end()

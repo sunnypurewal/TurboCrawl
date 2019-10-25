@@ -18,7 +18,7 @@ export default class HTTPURLHandler implements URLHandler {
         callback(url, htmlstream)
       // })
     }).catch((err: Error) => {
-      console.error(err)
+      // console.error(err)
       // process.nextTick(() => {
         callback(url, undefined, err)
       // })
