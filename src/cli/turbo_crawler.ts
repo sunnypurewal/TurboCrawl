@@ -1,5 +1,5 @@
 import Crawler from "../crawler/crawler"
-import { createServer, IncomingMessage, ServerResponse, Server, RequestListener } from "http"
+import { createServer, IncomingMessage, ServerResponse } from "http"
 import { Socket } from "net"
 import { PORT, HOST } from "./env"
 import SitemapLinkDetector from "../link_detectors/sitemap"
@@ -35,46 +35,81 @@ export default class TurboCrawler {
     }, )
   }
 
-  onrequest(req: IncomingMessage, res: ServerResponse) {
-    req.on("data", (chunk) => {
-      let chunkstring = chunk.toString()
-      const url = str2url(chunkstring)
-      if (url) {
-        console.log("Turbo Crawl starting crawl on ", url.href);
-        
-        let crawler = new Crawler(url,
-          SitemapLinkDetector.create(url, {startDate: Date.parse("2019-10-21")}),
-          new MetaDataParser(), 
-          FileConsumer.create(`./${url.host}.turbocrawl`, {flags: "a"}), 
-          new HTTPURLHandler())
-        this.crawlers.push(crawler)
-        crawler.on("exit", () => {
-          console.log("Crawler exited", url)
-          const index = this.crawlers.findIndex((v) => {
-            return v.domain.href == url.href
-          })
-          if (index !== -1) {
-            console.log("But was not found in list")
-            this.crawlers.splice(index)
-          }
-        })
-        crawler.start()
-      }
-      if (chunkstring === "exit") {
-        console.log("Got an exit request")
-        for (const crawler of this.crawlers) {
-          crawler.exit()
-        }
-        this.server.close((err) => {
-          console.log("Turbo Crawl server closed")
-          if (err) console.error(err)
-        })
-      }
+  onrequest(request: IncomingMessage, response: ServerResponse) {
+    response.on("error", (err) => {
+      console.error(err)
     })
-    req.on("end", () => {
-      res.writeHead(200, {"Content-Type": "application/json"})
-      res.write(JSON.stringify({success: true}))
-      res.end("And some more")
+
+    const { headers, method, url } = request;
+    let body: any = [];
+    let urlcopy = url ? url.slice() : ""
+    console.log(headers, method, url)
+    request.on('error', (err) => {
+      console.error(err);
+      response.statusCode = 400
+      response.end()
+    }).on('data', (chunk) => {
+      console.log("request data received")
+      body.push(chunk);
+    }).on('end', () => {
+      body = Buffer.concat(body).toString();
+      console.log("request end received")
+      if (method === "GET") {
+        if (urlcopy === "/list") {
+          console.log("Received list request")
+          try {
+            let crawlerstrings: string|Crawler[]|string[] = this.crawlers.map((c) => {
+              return c.domain.href
+            }) || []
+            crawlerstrings = JSON.stringify({crawlerstrings})
+            response.writeHead(200, {"Content-Type": "application/json",
+                                     "Content-Length": crawlerstrings.length})
+            response.write(crawlerstrings)
+            response.end()
+          } catch (err) {
+            console.error(err)
+            response.statusCode = 400
+            response.end()
+          }
+        } else if (urlcopy === "/exit") {
+          for (const crawler of this.crawlers) {
+            crawler.exit()
+          }
+          response.statusCode = 200
+          response.end()
+          this.server.close((err) => {
+            if (err) console.error(err)
+          })
+        } 
+      }
+      if (method === "POST") {
+        const contentType = headers["content-type"] || ""
+        if (contentType === "application/json") {
+          body = JSON.parse(body)
+        } else {
+          response.statusCode = 400
+          response.end()
+        }
+        if (urlcopy === "/crawl") {
+          console.log("Got a crawl request", body["url"], body.url, typeof(body), typeof(body.url))
+          let url = str2url(body["url"])
+          if (url) {
+            const crawler = new Crawler(url,
+              SitemapLinkDetector.create(url, {startDate: Date.parse("2019-10-21")}),
+              new MetaDataParser(),
+              FileConsumer.create(`./.turbocrawl/${url.host}`, {flags: "a"}),
+              new HTTPURLHandler()
+              )
+              this.crawlers.push(crawler)
+              crawler.on("exit", () => {
+                console.log("Crawler exited", url.href)
+              })
+              crawler.start()
+              response.statusCode = 200
+              response.end()
+          }
+        }
+      }
     })
   }
 

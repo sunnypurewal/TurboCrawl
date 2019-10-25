@@ -8,7 +8,7 @@ const DEFAULT_HOST = process.env["HOST_TCRAWL"] || "localhost"
 let host = DEFAULT_HOST
 import chalk from "chalk"
 const { str2url } = require("hittp")
-import { start, killall, crawl, exit } from "./tcrawl_commands"
+import { start, crawl, exit, list } from "./tcrawl_commands"
 
 if (process.argv[2] === undefined) {
   log(
@@ -24,7 +24,9 @@ if (process.argv[2] === undefined) {
 
 const url = str2url(process.argv[2])
 if (url) {
-  crawl(port, host, url)
+  crawl(port, host, url, (success) => {
+    log(success ? `${chalk.greenBright(url.href)} is being crawled` : `Failed to crawl ${chalk.redBright(url.href)}`)
+  })
 } else {
   const command = process.argv[2]
   if (command === "start") {
@@ -46,6 +48,14 @@ if (url) {
     `))
     })
   } else if (command === "exit") {
-    exit(port, host)
+    exit(port, host, (success) => {
+      log(success ? chalk.greenBright("Turbo Crawl will exit.") : chalk.redBright("Turbo Crawl failed to exit"))
+    })
+  } else if (command === "list") {
+    list(port, host, (crawlerstrings) => {
+      log(`
+  Crawlers:    
+    ${crawlerstrings.length > 0 ? crawlerstrings : "None. You can use the following command to start a crawl:\n\ttcrawl www.someurlhere.com"}`)
+    })
   }
 }

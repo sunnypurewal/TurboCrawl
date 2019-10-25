@@ -2,33 +2,88 @@ import TurboCrawler from "./turbo_crawler"
 import chalk from "chalk"
 import { readFileSync, unlink } from "fs"
 import { request } from "http"
+import Crawler from "../crawler/crawler"
 
-function send(port: number, host: string, body: string) {
-  const options: any = {
+export function list(port: number, host: string, callback: (crawlerstrings: string[]) => void ) {
+  request({
     host,
     port,
-    headers: {"Content-Type": "application/json"},
-    method: "POST"
-  }
-  const req = request(options)
-  req.setHeader("Content-Type", "application/json")
-  req.on("error", (err) => {
-    console.error(err)
-  })
-  req.on("response", (res) => {
-    res.on("data", (chunk) => {
+    path: "/list"
+  }, (res) => {
+    let body: any = []
+    res.on("error", (err) => {
+      console.error(err)
+    }).on("data", (chunk) => {
+      body.push(chunk)
+    }).on("end", () => {
+      body = Buffer.concat(body).toString()
+      const contentType = res.headers["content-type"] || ""
+      if (contentType === "application/json") {
+        try {
+          body = JSON.parse(body)
+          process.nextTick(() => {callback(body.crawlerstrings)})
+        } catch (err) {
+          throw err
+        }
+      }
+    })
+  }).end()
+}
+
+export function crawl(port: number, host: string, url: URL, callback: (success: boolean) => void) {
+  const req = request({
+    host,
+    port,
+    path: "/crawl",
+    method: "POST",
+    headers: {"content-type": "application/json"}
+  }, (res) => {
+    let body: any = []
+    res.on("error", (err) => {
+      console.error(err)
+    }).on("data", (chunk) => {
+      body.push(chunk)
+    }).on("end", () => {
+      body = Buffer.concat(body).toString()
+      const contentType = res.headers["content-type"] || ""
+      if (contentType === "application/json") {
+        try {
+          body = JSON.parse(body)
+          process.nextTick(() => {callback(body.success)})
+        } catch (err) {
+          console.error(err)
+        }
+      }
     })
   })
-  req.write(body)
+  req.write(JSON.stringify({url: url.href}))
   req.end()
 }
 
-export function crawl(port: number, host: string, url: URL) {
-  send(port, host, url.href)
-}
-
-export function exit(port: number, host: string) {
-  send(port, host, "exit")
+export function exit(port: number, host: string, callback: (success: boolean)=>void) {
+  request({
+    host,
+    port,
+    path: "/exit"
+  }, (res) => {
+    let body: any = []
+    res.on("error", (err) => {
+      console.error(err)
+    }).on("data", (chunk) => {
+      body.push(chunk)
+    }).on("end", () => {
+      body = Buffer.concat(body).toString()
+      const contentType = res.headers["content-type"] || ""
+      if (contentType === "application/json") {
+        try {
+          body = JSON.parse(body)
+          process.nextTick(() => {callback(body.success)})
+        } catch (err) {
+          throw err
+        }
+      }
+    })
+  }).end()
 }
 
 export function start(port: number, host: string, callback: (turbo: TurboCrawler)=>void) {
@@ -36,22 +91,4 @@ export function start(port: number, host: string, callback: (turbo: TurboCrawler
   turboCrawler.start(() => {
     if (callback) process.nextTick( () => callback(turboCrawler) )
   })
-}
-
-export function killall() {
-  let pids: any = readFileSync("./.turbocrawl/pid", {encoding: "utf-8"})
-  if (pids.length === 0) {
-    console.log(chalk.green(`
-Turbo Crawl is not running
-`))
-  } else {
-    pids = JSON.parse(pids)
-    console.log(chalk.red(`Killing ${pids.length} processes`))
-    for (const pid of pids) {
-      process.kill(pid)
-    }
-    unlink("./.turbocrawl/pid", (err) => {
-
-    })
-  }
 }
