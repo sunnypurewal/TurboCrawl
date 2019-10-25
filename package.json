@@ -1,6 +1,6 @@
 {
   "name": "turbocrawl",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "The simple and fast crawling framework. So you can focus on scraping.",
   "bin": {
     "tcrawl": "build/cli/tcrawl.js"
@@ -36,7 +36,7 @@
     "@types/uuid": "^3.4.5",
     "chalk": "^2.4.2",
     "express": "^4.17.1",
-    "getsitemap": "^0.7.12",
+    "getsitemap": "^0.7.13",
     "hittp": "^0.5.6",
     "uuid": "^3.3.3"
   },

@@ -58,7 +58,7 @@ if (url) {
     })
   } else if (command === "exit") {
     exit(port, host, (success) => {
-      log(success ? chalk.greenBright("Turbo Crawl will exit.") : chalk.redBright("Turbo Crawl failed to exit."))
+      log(success ? chalk.greenBright("Turbo Crawl has exited") : chalk.redBright("Turbo Crawl failed to exit."))
     })
   } else if (command === "list") {
     list(port, host, (crawlerstrings) => {
@@ -117,7 +117,7 @@ if (url) {
     let arg = process.argv[3]
     if (arg === "random") {
       random(port, host, (url) => {
-        log((url ? chalk.greenBright(`Turbo Crawl will crawl ${url.href}}`) : chalk.redBright("Turbo Crawl failed to random crawl")))
+        log((url ? chalk.greenBright(`Randomly selected ${url.href} for crawling`) : chalk.redBright("Turbo Crawl failed to random crawl")))
       })
     } else if (arg === "-f") {
       arg = process.argv[4]

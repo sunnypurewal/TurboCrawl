@@ -55,7 +55,9 @@ export default class MetadataParser extends Transform {
       }
       this.open = opens.next()
     }
-    this.push(JSON.stringify(metadata) + "\n")
+    try {
+      this.push(JSON.stringify(metadata) + "\n")
+    } catch (err) {}
     callback()
   }
 

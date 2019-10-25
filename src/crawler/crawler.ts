@@ -34,9 +34,9 @@ export default class Crawler extends EventEmitter {
   }
 
   start() {
-    // this.detector.on("end", () => {
-    //   console.log("Link detector ended", this.domain.href)
-    // })
+    this.detector.on("end", () => {
+      console.log("Link detector has finished queueing requests for", this.domain.href)
+    })
     // this.detector.on("close", () => {
     //   console.log("Link detector closed", this.domain.href)
     // })

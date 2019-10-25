@@ -100,17 +100,20 @@ export function random(port: number, host: string, callback: (url?: URL) => void
     _random(port, host, path, filenames, callback)
   }
 }
-export function pause(port: number, host: string, url: URL, callback: (success: boolean) => void) {
+export function pause(port: number, host: string, url: URL, callback: (success: boolean, err?: Error) => void) {
   post(port, host, "/pause", url, callback)
 }
-export function end(port: number, host: string, url: URL, callback: (success: boolean) => void) {
-  post(port, host, "/end", url, callback)
+export function end(port: number, host: string, url: URL, callback: (success: boolean, err?: Error) => void) {
+  endlist(port, host, [url], callback)
 }
-export function resume(port: number, host: string, url: URL, callback: (success: boolean) => void) {
+export function endlist(port: number, host: string, urls: URL[], callback: (success: boolean, err?: Error) => void) {
+  postlist(port, host, "/end", urls, callback)
+}
+export function resume(port: number, host: string, url: URL, callback: (success: boolean, err?: Error) => void) {
   post(port, host, "/resume", url, callback)
 }
 
-function post(port: number, host: string, path: string, url: URL, callback: (success: boolean) => void) {
+function postlist(port: number, host: string, path: string, urls: URL[], callback: (success: boolean, err?: Error) => void) {
   const req = request({
     host,
     port,
@@ -126,17 +129,35 @@ function post(port: number, host: string, path: string, url: URL, callback: (suc
     }).on("end", () => {
       body = Buffer.concat(body).toString()
       if (res.statusCode! >= 200 && res.statusCode! <= 299) {
-        const contentType = res.headers["content-type"] || ""
-        if (contentType === "application/json") {
-          try {
-            body = JSON.parse(body)
-            process.nextTick(() => {callback(body.success)})
-          } catch (err) {
-            console.error(err)
-          }
-        }
+        process.nextTick(() => callback(true))
       } else {
-        console.error("HTTP ERROR", res.statusCode)
+        process.nextTick(() => callback(false, new Error("HTTP Error" + res.statusCode)))
+      }
+    })
+  })
+  req.write(JSON.stringify(urls.map(u => u.href)))
+  req.end()
+}
+
+function post(port: number, host: string, path: string, url: URL, callback: (success: boolean, err?: Error) => void) {
+  const req = request({
+    host,
+    port,
+    path,
+    method: "POST",
+    headers: {"content-type": "application/json"}
+  }, (res) => {
+    let body: any = []
+    res.on("error", (err) => {
+      console.error(err)
+    }).on("data", (chunk) => {
+      body.push(chunk)
+    }).on("end", () => {
+      body = Buffer.concat(body).toString()
+      if (res.statusCode! >= 200 && res.statusCode! <= 299) {
+        process.nextTick(() => callback(true))
+      } else {
+        process.nextTick(() => callback(false, new Error("HTTP Error" + res.statusCode)))
       }
     })
   })
@@ -246,16 +267,7 @@ export function exit(port: number, host: string, callback: (success: boolean)=>v
     }).on("data", (chunk) => {
       body.push(chunk)
     }).on("end", () => {
-      body = Buffer.concat(body).toString()
-      const contentType = res.headers["content-type"] || ""
-      if (contentType === "application/json") {
-        try {
-          body = JSON.parse(body)
-          process.nextTick(() => {callback(body.success)})
-        } catch (err) {
-          throw err
-        }
-      }
+      callback(res.statusCode! >= 200 && res.statusCode! <= 299)
     })
   }).end()
 }

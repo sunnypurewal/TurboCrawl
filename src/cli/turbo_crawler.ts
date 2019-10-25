@@ -4,6 +4,7 @@ import { Socket } from "net"
 import { PORT, HOST } from "./env"
 import FileConsumer from "../crawler/consumers/file"
 import chalk from "chalk"
+const log = console.log
 import { accessSync, mkdirSync } from "fs"
 const { str2url } = require("hittp")
 
@@ -109,7 +110,8 @@ export default class TurboCrawler {
               urls.push(url)
             }
           }
-          console.log("Crawling", urls.length, "URLs")
+
+          console.log("Crawling", urls.length, urls.length > 1 ? "URLs" : "URL")
           let path = "./.turbocrawl/crawled"
           for (let url of urls) {
             let filepath = `${path}/${url.host}.ndjson`
@@ -124,23 +126,32 @@ export default class TurboCrawler {
           response.write(JSON.stringify({success:true}))
           response.end()
         } else if (urlcopy === "/end") {
-          let url = str2url(body["url"])
-          console.log("Received end request", url.href)
-          if (url) {
+          let urls: URL[] = []
+          if (body.length) {
+            // const random = Math.floor(Math.random() * body.length)
+            for (let urlstring of body/*.slice(random, random + 2)*/) {
+              let url = str2url(urlstring)
+              if (url) {
+                urls.push(url)
+              }
+            }
+          } else {
+            let url = str2url(body["url"])
+            if (url) {
+              urls.push(url)
+            }
+          }
+          for (let url of urls) {
             let index = this.crawlers.findIndex((v) => {
               return v.domain.host === url.host
             })
-            console.log(index)
             if (index !== -1) {
-              const deleted = this.crawlers.splice(index, 1)[0]
-              deleted.exit()
-              response.statusCode = 200
-              response.end()
-            } else {
-              response.statusCode = 404
-              response.end()
+              const crawler = this.crawlers.splice(index, 1)[0]
+              crawler.exit()
             }
           }
+          response.statusCode = 200
+          response.end()
         } else if (urlcopy === "/pause") {
           let url = str2url(body["url"])
           if (url) {
@@ -187,7 +198,7 @@ export default class TurboCrawler {
   }
 
   onclose() {
-    console.log("TurboCrawler closed connection")
+    log(chalk.blueBright("Turbo Crawl has exited"))
   }
 
 }
