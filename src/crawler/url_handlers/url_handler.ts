@@ -4,25 +4,24 @@ import stream from "stream"
 
 
 export default class HTTPURLHandler implements URLHandler {
-  private domain: URL
-  constructor(domain: URL) {
-    this.domain = new URL(domain.href)
-  }
-  handle(callback: onURLHandledCallback) {
-    hittp.get(this.domain).then((html: string|Buffer) => {
+  handle(url: URL, callback: onURLHandledCallback) {
+    hittp.get(url).then((html: string|Buffer) => {
       process.nextTick(() => {
-        callback({url:this.domain, html})
+        callback({url, html})
       })
     })
   }
 
-  stream(callback: onHTMLStreamCallback) {
-    hittp.stream(this.domain).then((htmlstream: stream.Readable) => {
-      process.nextTick(() => {
-        callback(this.domain, htmlstream)
-      })
+  stream(url: URL, callback: onHTMLStreamCallback) {
+    hittp.stream(url).then((htmlstream: stream.Readable) => {
+      // process.nextTick(() => {
+        callback(url, htmlstream)
+      // })
     }).catch((err: Error) => {
       console.error(err)
+      // process.nextTick(() => {
+        callback(url, undefined, err)
+      // })
     })
   }
 

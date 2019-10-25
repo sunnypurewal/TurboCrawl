@@ -1,9 +1,17 @@
 import TurboCrawler from "./turbo_crawler"
-import chalk from "chalk"
 import { readFileSync, unlink } from "fs"
 import { request } from "http"
 const { str2url } = require("hittp")
-import Crawler from "../crawler/crawler"
+const shuffle = require("knuth-shuffle").knuthShuffle
+
+export function country(port: number, host: string, c: string, callback?: () => void) {
+  let domains: Buffer|string|any = readFileSync(`./.turbocrawl/default/countries/${c}`)
+  domains = domains.toString().split("\n")
+  domains = domains.filter((d: string) => d.length > 0)
+  domains = domains.map((d: string) => str2url(d))
+  shuffle(domains)
+  bulkCrawl(port, host, domains)
+}
 
 export function random(port: number, host: string, callback: (url?: URL) => void) {
   let domains: Buffer|string|any = readFileSync("./.turbocrawl/default/domains.json")
@@ -18,6 +26,7 @@ export function random(port: number, host: string, callback: (url?: URL) => void
     let random = Math.floor(Math.random() * domains.length)
     let domain = domains[random]
     let url = str2url(domain)
+    console.log("Random URL", url ? url.href : "404")
     if (url) {
       crawl(port, host, url, (success) => {
         callback(success ? url : undefined)
@@ -25,6 +34,8 @@ export function random(port: number, host: string, callback: (url?: URL) => void
     } else {
       callback()
     }
+  } else {
+    callback()
   }
 }
 export function pause(port: number, host: string, url: URL, callback: (success: boolean) => void) {
@@ -98,6 +109,7 @@ export function list(port: number, host: string, callback: (crawlerstrings: stri
 }
 
 export function bulkCrawl(port: number, host: string, urls: URL[], callback?: (success: boolean, url: URL)=>void) {
+  console.log("Bulk crawling", urls.length, "domains")
   const req = request({
     host,
     port,

@@ -8,8 +8,10 @@ const DEFAULT_HOST = process.env["HOST_TCRAWL"] || "localhost"
 let host = DEFAULT_HOST
 import chalk from "chalk"
 const { str2url } = require("hittp")
-import { start, crawl, bulkCrawl, exit, list, pause, end, resume, random } from "./tcrawl_commands"
+import { start, crawl, bulkCrawl, exit, list, pause, end, resume, random, country } from "./tcrawl_commands"
 import { readFileSync } from "fs"
+
+let COUNTRIES: string[] = []
 
 if (process.argv[2] === undefined) {
   log(
@@ -97,6 +99,17 @@ if (url) {
         domains = domains.map((d: string) => { return str2url(d) }) as URL[]
         log(`Crawling ${chalk.greenBright(domains.length.toString())} domains`)
         bulkCrawl(port, host, domains)
+      }
+    } else {
+      COUNTRIES = JSON.parse(readFileSync("./.turbocrawl/default/countries.json").toString()) || []
+      let index = -1
+      for (let i = 0; i < COUNTRIES.length; i++) {
+        const c = COUNTRIES[i]
+        arg = arg.toLowerCase()
+        if (arg == c.toLowerCase()) {
+          log(chalk.greenBright(`Turbo Crawl will crawl ${c} news` ))
+          country(port, host, c)
+        }
       }
     }
   }

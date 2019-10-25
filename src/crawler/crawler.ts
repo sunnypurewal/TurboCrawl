@@ -18,8 +18,8 @@ const hittp = require("hittp")
 export default class Crawler extends EventEmitter {
   public domain:URL
   private detector: SitemapLinkDetector
-  private urlHandler: URLHandler
   private consumer: ParsedPageConsumer
+  private urlHandler: URLHandler
   constructor(domain:string, consumer: FileConsumer,
     ) {
       super()
@@ -29,21 +29,26 @@ export default class Crawler extends EventEmitter {
       }
       this.detector = new SitemapLinkDetector(this.domain.host, {startDate: "2019-10-21"})
       this.consumer = consumer
-      this.urlHandler = new HTTPURLHandler(this.domain)
+      this.urlHandler = new HTTPURLHandler()
   }
 
   start() {
     this.detector.on("end", () => {
-      // console.log("Link detector ended", this.domain.href)
+      console.log("Link detector ended", this.domain.href)
     })
     this.detector.on("close", () => {
-      // console.log("Link detector closed", this.domain.href)
+      console.log("Link detector closed", this.domain.href)
     })
-    this.detector.on("data", (urlstring) => {
-      const url: URL = new URL(urlstring)
-      this.urlHandler.stream((url, htmlstream) => {
-        const parser = new MetaDataParser()
-        htmlstream.pipe(parser).pipe(this.consumer, {end: false})
+    this.detector.on("data", (chunk) => {
+      let chunkstring = chunk.toString()
+      const url: URL = hittp.str2url(chunkstring.split("||")[0])
+      this.urlHandler.stream(url, (url, htmlstream, err) => {
+        if (htmlstream) {
+          const parser = new MetaDataParser()
+          htmlstream.pipe(parser).pipe(this.consumer, {end: false})
+        } else if (err) {
+          console.error(err)
+        }
       })
     })
   }
@@ -61,11 +66,10 @@ export default class Crawler extends EventEmitter {
   }
 
   exit() {
-    // console.log("Link detector destroy", this.domain.href)
+    console.log("Link detector destroy", this.domain.href)
+    this.detector.cancel()
     this.detector.destroy()
     this.consumer.destroy()
-    this.urlHandler.cancel(this.domain.host)
-    this.detector.cancel()
     this.emit("exit")
   }
 }

@@ -7,8 +7,8 @@ export interface URLHandler {
    * @param {URL} url URL that needs to be handled
    * @param callback and return an  in this callback 
    */
-  handle(callback: onURLHandledCallback): void
-  stream(callback: onHTMLStreamCallback): void
+  handle(url: URL, callback: onURLHandledCallback): void
+  stream(url: URL, callback: onHTMLStreamCallback): void
   cancel(host: string): void
 }
 
@@ -39,7 +39,7 @@ export type onPageParsedCallback = (parsed: ParsedWebPage) => void
 export type onParserStreamCallback = (url: URL, parserstream: Readable) => void
 
 export type onURLHandledCallback = (webpage: WebPage) => void
-export type onHTMLStreamCallback = (url: URL, htmlstream: Readable) => void
+export type onHTMLStreamCallback = (url: URL, htmlstream?: Readable, error?: Error) => void
 
 export type onParsedPageConsumedCallback = () => void
 export type onParsedPageStreamedCallback = () => void

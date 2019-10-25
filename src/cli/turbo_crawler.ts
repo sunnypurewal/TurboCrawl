@@ -43,7 +43,7 @@ export default class TurboCrawler {
     const { headers, method, url } = request;
     let body: any = [];
     let urlcopy = url ? url.slice() : ""
-    console.log(headers, method, url)
+    // console.log(headers, method, url)
     request.on('error', (err) => {
       console.error(err);
       response.statusCode = 400
@@ -90,8 +90,8 @@ export default class TurboCrawler {
         if (urlcopy === "/") {
           let urls: URL[] = []
           if (body.length) {
-            const random = Math.floor(Math.random() * body.length)
-            for (let urlstring of body.slice(random, random+5)) {
+            // const random = Math.floor(Math.random() * body.length)
+            for (let urlstring of body/*.slice(random, random + 2)*/) {
               let url = str2url(urlstring)
               if (url) {
                 urls.push(url)
@@ -103,6 +103,7 @@ export default class TurboCrawler {
               urls.push(url)
             }
           }
+          console.log("Crawling", urls.length, "URLs")
           for (let url of urls) {
             const crawler = new Crawler(url.href,
               FileConsumer.create(`./.turbocrawl/crawled/${url.host}`, {flags: "a"})
