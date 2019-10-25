@@ -14,10 +14,11 @@ class GetSitemapTransformStream extends Transform {
     c = c.split("||")
     let url = str2url(c[0])
     if (url instanceof URL) this.push(url.href)
+    callback()
   }
 }
 
-export default class SitemapLinkDetector extends Readable {
+export default class SitemapLinkDetector {
   static create(domain: URL | string, options: any): Readable {
     const transformer = new GetSitemapTransformStream(options)
     const mapper = new SiteMapper()

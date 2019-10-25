@@ -8,7 +8,7 @@ const DEFAULT_HOST = process.env["HOST_TCRAWL"] || "localhost"
 let host = DEFAULT_HOST
 import chalk from "chalk"
 const { str2url } = require("hittp")
-import { start, crawl, exit, list } from "./tcrawl_commands"
+import { start, crawl, exit, list, pause, end, resume } from "./tcrawl_commands"
 
 if (process.argv[2] === undefined) {
   log(
@@ -49,7 +49,7 @@ if (url) {
     })
   } else if (command === "exit") {
     exit(port, host, (success) => {
-      log(success ? chalk.greenBright("Turbo Crawl will exit.") : chalk.redBright("Turbo Crawl failed to exit"))
+      log(success ? chalk.greenBright("Turbo Crawl will exit.") : chalk.redBright("Turbo Crawl failed to exit."))
     })
   } else if (command === "list") {
     list(port, host, (crawlerstrings) => {
@@ -57,5 +57,29 @@ if (url) {
   Crawlers:    
     ${crawlerstrings.length > 0 ? crawlerstrings : "None. You can use the following command to start a crawl:\n\ttcrawl www.someurlhere.com"}`)
     })
+  } else if (command === "pause") {
+    let arg = process.argv[3]
+    const url = str2url(arg)
+    if (url) {
+      pause(port, host, url, (success) => {
+        log((success ? chalk.greenBright("Turbo Crawl will pause") : chalk.redBright("Turbo Crawl failed to pause")), url.href)
+      })
+    }
+  } else if (command === "end") {
+    let arg = process.argv[3]
+    const url = str2url(arg)
+    if (url) {
+      end(port, host, url, (success) => {
+        log((success ? chalk.greenBright("Turbo Crawl will end") : chalk.redBright("Turbo Crawl failed to end")), url.href)
+      })
+    }
+  } else if (command === "resume") {
+    let arg = process.argv[3]
+    const url = str2url(arg)
+    if (url) {
+      resume(port, host, url, (success) => {
+        log((success ? chalk.greenBright("Turbo Crawl will resume") : chalk.redBright("Turbo Crawl failed to resume")), url.href)
+      })
+    }
   }
 }

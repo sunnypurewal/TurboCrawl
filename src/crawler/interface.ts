@@ -7,8 +7,9 @@ export interface URLHandler {
    * @param {URL} url URL that needs to be handled
    * @param callback and return an  in this callback 
    */
-  handle(url: URL, callback: onURLHandledCallback): void
-  stream(url: URL, callback: onHTMLStreamCallback): void
+  handle(callback: onURLHandledCallback): void
+  stream(callback: onHTMLStreamCallback): void
+  cancel(host: string): void
 }
 
 export class WebPageParser extends Transform {

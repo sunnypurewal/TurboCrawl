@@ -11,7 +11,9 @@ import FileConsumer from "./consumers/file";
 import { EventEmitter } from "events";
 import MetaDataParser from "./parsers/metadata";
 import { Readable } from "stream";
-const { str2url } = require("hittp")
+import SitemapLinkDetector from "../link_detectors/sitemap";
+import HTTPURLHandler from "./url_handlers/url_handler";
+const hittp = require("hittp")
 
 export default class Crawler extends EventEmitter {
   public domain:URL
@@ -19,32 +21,35 @@ export default class Crawler extends EventEmitter {
   private urlHandler: URLHandler
   private consumer: ParsedPageConsumer
   constructor(domain:URL|string, 
-    detector: Readable,
-    parser: WebPageParser,
+    // detector: Readable,
+    // parser: WebPageParser,
     consumer: FileConsumer,
-    urlHandler: URLHandler) {
+    // urlHandler: URLHandler
+    ) {
       super()
       if (!(domain instanceof URL)) {
-        this.domain = str2url(domain)
+        this.domain = hittp.str2url(domain)
       } else {
         this.domain = domain
       }
       if (!this.domain) {
         throw new Error("Invalid domain sent to Crawler constructor")
       }
-      this.detector = detector
+      this.detector = SitemapLinkDetector.create(domain, {startDate: "2019-10-21"})
       this.consumer = consumer
-      this.urlHandler = urlHandler
+      this.urlHandler = new HTTPURLHandler(this.domain)
   }
 
   start() {
     this.detector.on("end", () => {
-      this.consumer.end()
-      console.log("Link detector ended", this.domain.href)
+      // console.log("Link detector ended", this.domain.href)
+    })
+    this.detector.on("close", () => {
+      // console.log("Link detector closed", this.domain.href)
     })
     this.detector.on("data", (urlstring) => {
       const url: URL = new URL(urlstring)
-      this.urlHandler.stream(url, (url, htmlstream) => {
+      this.urlHandler.stream((url, htmlstream) => {
         const parser = new MetaDataParser()
         htmlstream.pipe(parser).pipe(this.consumer, {end: false})
       })
@@ -52,16 +57,22 @@ export default class Crawler extends EventEmitter {
   }
 
   pause() {
+    // console.log("Link detector paused", this.domain.href)
     this.detector.pause()
   }
 
   resume() {
     if (this.detector.listenerCount("data") > 0) {
+      // console.log("Link detector resumed", this.domain.href)
       this.detector.resume()
     }
   }
 
   exit() {
+    // console.log("Link detector destroy", this.domain.href)
     this.detector.destroy()
+    this.consumer.destroy()
+    this.urlHandler.cancel(this.domain.host)
+    this.emit("exit")
   }
 }

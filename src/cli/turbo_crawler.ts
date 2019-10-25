@@ -49,14 +49,11 @@ export default class TurboCrawler {
       response.statusCode = 400
       response.end()
     }).on('data', (chunk) => {
-      console.log("request data received")
       body.push(chunk);
     }).on('end', () => {
       body = Buffer.concat(body).toString();
-      console.log("request end received")
       if (method === "GET") {
         if (urlcopy === "/list") {
-          console.log("Received list request")
           try {
             let crawlerstrings: string|Crawler[]|string[] = this.crawlers.map((c) => {
               return c.domain.href
@@ -80,7 +77,7 @@ export default class TurboCrawler {
           this.server.close((err) => {
             if (err) console.error(err)
           })
-        } 
+        }
       }
       if (method === "POST") {
         const contentType = headers["content-type"] || ""
@@ -91,14 +88,10 @@ export default class TurboCrawler {
           response.end()
         }
         if (urlcopy === "/crawl") {
-          console.log("Got a crawl request", body["url"], body.url, typeof(body), typeof(body.url))
           let url = str2url(body["url"])
           if (url) {
             const crawler = new Crawler(url,
-              SitemapLinkDetector.create(url, {startDate: Date.parse("2019-10-21")}),
-              new MetaDataParser(),
-              FileConsumer.create(`./.turbocrawl/${url.host}`, {flags: "a"}),
-              new HTTPURLHandler()
+              FileConsumer.create(`./.turbocrawl/${url.host}`, {flags: "a"})
               )
               this.crawlers.push(crawler)
               crawler.on("exit", () => {
@@ -107,6 +100,56 @@ export default class TurboCrawler {
               crawler.start()
               response.statusCode = 200
               response.end()
+          }
+        } else if (urlcopy === "/end") {
+          let url = str2url(body["url"])
+          console.log("Received end request", url.href)
+          if (url) {
+            let index = this.crawlers.findIndex((v) => {
+              return v.domain.host === url.host
+            })
+            console.log(index)
+            if (index !== -1) {
+              const deleted = this.crawlers.splice(index, 1)[0]
+              deleted.exit()
+              response.statusCode = 200
+              response.end()
+            } else {
+              response.statusCode = 404
+              response.end()
+            }
+          }
+        } else if (urlcopy === "/pause") {
+          let url = str2url(body["url"])
+          if (url) {
+            let index = this.crawlers.findIndex((v) => {
+              return v.domain.host === url.host
+            })
+            if (index !== -1) {
+              const deleted = this.crawlers.splice(index, 1)[0]
+              deleted.pause()
+              response.statusCode = 200
+              response.end()
+            } else {
+              response.statusCode = 404
+              response.end()
+            }
+          }
+        } else if (urlcopy === "/resume") {
+          let url = str2url(body["url"])
+          if (url) {
+            let index = this.crawlers.findIndex((v) => {
+              return v.domain.host === url.host
+            })
+            if (index !== -1) {
+              const deleted = this.crawlers.splice(index, 1)[0]
+              deleted.resume()
+              response.statusCode = 200
+              response.end()
+            } else {
+              response.statusCode = 404
+              response.end()
+            }
           }
         }
       }
