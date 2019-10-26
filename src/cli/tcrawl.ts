@@ -8,7 +8,7 @@ const DEFAULT_HOST = process.env["HOST_TCRAWL"] || "localhost"
 let host = DEFAULT_HOST
 import chalk from "chalk"
 const { str2url } = require("hittp")
-import { start, crawl, bulkCrawl, exit, list, pause, end, resume, random, country, genreddit, gencountries } from "./tcrawl_commands"
+import { start, crawl, bulkCrawl, exit, list, pause, end, resume, random, country, genreddit, gencountries, endall } from "./tcrawl_commands"
 import { readFileSync, accessSync, mkdirSync } from "fs"
 
 let COUNTRIES: string[] = []
@@ -84,6 +84,10 @@ if (url) {
           : chalk.redBright("Turbo Crawl failed to end")), url.href)
       })
     }
+  } else if (command === "endall") {
+    endall(port, host, (success) => {
+      
+    })
   } else if (command === "resume") {
     let arg = process.argv[3]
     const url = str2url(arg)

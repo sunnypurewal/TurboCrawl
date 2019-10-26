@@ -104,39 +104,13 @@ export function pause(port: number, host: string, url: URL, callback: (success: 
   post(port, host, "/pause", url, callback)
 }
 export function end(port: number, host: string, url: URL, callback: (success: boolean, err?: Error) => void) {
-  endlist(port, host, [url], callback)
+  post(port, host, "/end", url, callback)
 }
-export function endlist(port: number, host: string, urls: URL[], callback: (success: boolean, err?: Error) => void) {
-  postlist(port, host, "/end", urls, callback)
+export function endall(port: number, host: string, callback: (success: boolean, err?: Error) => void) {
+  post(port, host, "/endall", new URL("http://www.turobcrawl.com/"), callback)
 }
 export function resume(port: number, host: string, url: URL, callback: (success: boolean, err?: Error) => void) {
   post(port, host, "/resume", url, callback)
-}
-
-function postlist(port: number, host: string, path: string, urls: URL[], callback: (success: boolean, err?: Error) => void) {
-  const req = request({
-    host,
-    port,
-    path,
-    method: "POST",
-    headers: {"content-type": "application/json"}
-  }, (res) => {
-    let body: any = []
-    res.on("error", (err) => {
-      console.error(err)
-    }).on("data", (chunk) => {
-      body.push(chunk)
-    }).on("end", () => {
-      body = Buffer.concat(body).toString()
-      if (res.statusCode! >= 200 && res.statusCode! <= 299) {
-        process.nextTick(() => callback(true))
-      } else {
-        process.nextTick(() => callback(false, new Error("HTTP Error" + res.statusCode)))
-      }
-    })
-  })
-  req.write(JSON.stringify(urls.map(u => u.href)))
-  req.end()
 }
 
 function post(port: number, host: string, path: string, url: URL, callback: (success: boolean, err?: Error) => void) {

@@ -152,6 +152,11 @@ export default class TurboCrawler {
           }
           response.statusCode = 200
           response.end()
+        } else if (urlcopy === "/endall") {
+          this.crawlers.forEach(c=>c.exit())
+          this.crawlers = []
+          response.statusCode = 200
+          response.end()
         } else if (urlcopy === "/pause") {
           let url = str2url(body["url"])
           if (url) {
