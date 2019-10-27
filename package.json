@@ -34,7 +34,7 @@
   "dependencies": {
     "chalk": "^2.4.2",
     "express": "^4.17.1",
-    "getsitemap": "^0.7.13",
+    "getsitemap": "^0.7.14",
     "hittp": "^0.5.6",
     "uuid": "^3.3.3"
   },

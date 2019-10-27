@@ -1,5 +1,5 @@
 import {Transform, TransformCallback } from "stream"
-import { Scraper } from "../interface"
+import { Scraper } from "../../interface"
 
 export default class MetadataScraper implements Scraper {
   create(options?: any): MetadataScrapeStream {

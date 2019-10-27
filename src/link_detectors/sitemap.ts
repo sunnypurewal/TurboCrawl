@@ -1,6 +1,7 @@
 import { Transform, Readable, TransformCallback, Writable, PassThrough } from "stream"
 const { SiteMapper } = require("getsitemap")
 const { str2url } = require("hittp")
+import { LinkDetector } from "../interface"
 
 class GetSitemapTransformStream extends Transform {
   startDate: Date
@@ -18,17 +19,21 @@ class GetSitemapTransformStream extends Transform {
   }
 }
 
-export default class SitemapLinkDetector extends Readable {
-  private stream: Readable|undefined
+export default class SitemapLinkDetector extends Readable implements LinkDetector {
+  domain: URL
+  options?: any
   private mapper: any
-  constructor(domain: string, options: any) {
+  constructor(domain: URL, options?: any) {
+    options = options || {}
     super(options)
     const transformer = new GetSitemapTransformStream(options)
+    this.domain = domain
+    this.options = options
     this.mapper = new SiteMapper(domain)
     this.mapper.map(options.startDate).pipe(this).pipe(transformer)
   }
-  _destroy(error: Error | null, callback: (error?: Error | null) => void) {
+  _destroy(error: Error | null, callback: (error: Error | null) => void) {
     this.mapper.cancel()
-    callback()
+    callback(error)
   }
 }

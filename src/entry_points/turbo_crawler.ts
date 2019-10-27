@@ -116,7 +116,8 @@ export default class TurboCrawler {
           let path = "./.turbocrawl/crawled"
           for (let url of urls) {
             let filepath = `${path}/${url.host}.ndjson`
-            const crawler = new Crawler(url.href, FileConsumer.create(filepath, {flags: "w"}))
+            const consumer = new FileConsumer(url, {filepath, flags: "w"})
+            const crawler = new Crawler(url, consumer)
             this.crawlers.push(crawler)
             crawler.on("exit", () => {
               console.log("Crawler exited", url.href)

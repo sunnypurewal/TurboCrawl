@@ -6,7 +6,7 @@
  * There is a single URLHandler that processes the
  * URL and emits a {@link WebPage | "url, html"} object
  */
-import { Scraper, URLHandler } from "./interface";
+import { Scraper, URLHandler } from "../interface";
 import { EventEmitter } from "events";
 import MetaDataParser from "./parsers/metadata";
 import { Readable, Writable } from "stream";
@@ -22,13 +22,10 @@ export default class Crawler extends EventEmitter {
   private consumer: Writable
   private urlHandler: URLHandler
   private scraper: Scraper
-  constructor(domain:string, consumer: Writable, scraper?: Scraper, detector?: Readable, urlHandler?: URLHandler) {
+  constructor(domain: URL, consumer: Writable, scraper?: Scraper, detector?: Readable, urlHandler?: URLHandler) {
       super()
-      this.domain = hittp.str2url(domain)
-      if (!this.domain) {
-        throw new Error("Invalid domain sent to Crawler constructor")
-      }
-      this.detector = detector || new SitemapLinkDetector(this.domain.host, {startDate: new Date(Date.now()-86400)})
+      this.domain = domain
+      this.detector = detector || new SitemapLinkDetector(this.domain, {startDate: new Date(Date.now()-86400)})
       this.consumer = consumer
       this.urlHandler = urlHandler || new HTTPURLHandler()
       this.scraper = scraper || new MetadataScraper()

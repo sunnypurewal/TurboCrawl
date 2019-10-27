@@ -1,5 +1,5 @@
 const hittp = require("hittp")
-import { URLHandler, onURLHandledCallback, onHTMLStreamCallback } from "../interface"
+import { URLHandler, onURLHandledCallback, onHTMLStreamCallback } from "../../interface"
 import stream from "stream"
 
 

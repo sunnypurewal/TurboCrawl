@@ -18,10 +18,20 @@ export class WebPageParser extends Transform {
   }
 }
 
+export interface CrawlConsumer extends Writable {
+  domain: URL
+  options?: any
+}
+
 export class ParsedPageConsumer extends Writable {
   static create(url: URL, parsedPageStream: Readable, options?: any): ParsedPageConsumer {
     throw new Error("Not implemented")
   }
+}
+
+export interface LinkDetector extends Readable {
+  domain: URL
+  options?: any
 }
 
 /**
