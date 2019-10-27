@@ -1,5 +1,5 @@
-import { ParsedPageConsumer, ParsedWebPage, onParsedPageConsumedCallback, onParsedPageStreamedCallback, CrawlConsumer } from "../../interface";
-import { Readable, Writable } from "stream";
+import { CrawlConsumer } from "../../interface";
+import { Writable } from "stream";
 import { createWriteStream, PathLike, WriteStream } from "fs"
 
 
