@@ -1,7 +1,7 @@
 import { Transform, Readable, TransformCallback, Writable, PassThrough } from "stream"
 const { SiteMapper } = require("getsitemap")
 const { str2url } = require("hittp")
-import { LinkDetector } from "../interface"
+import { LinkDetector } from "../../interface"
 
 class GetSitemapTransformStream extends Transform {
   startDate: Date

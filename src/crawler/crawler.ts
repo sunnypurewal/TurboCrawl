@@ -10,7 +10,7 @@ import { Scraper, URLHandler } from "../interface";
 import { EventEmitter } from "events";
 import MetaDataParser from "./parsers/metadata";
 import { Readable, Writable } from "stream";
-import SitemapLinkDetector from "../link_detectors/sitemap";
+import SitemapLinkDetector from "./link_detectors/sitemap";
 import HTTPURLHandler from "./url_handlers/url_handler";
 import hittp from "hittp";
 import MetadataScraper from "./parsers/metadata";

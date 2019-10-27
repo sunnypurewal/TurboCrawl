@@ -5,6 +5,7 @@
   "bin": {
     "tcrawl": "build/cli/tcrawl.js"
   },
+  "main": "build/index.js",
   "scripts": {
     "build": "tsc",
     "postbuild": "chmod +x build/cli/tcrawl.js",

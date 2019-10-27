@@ -1,7 +1,4 @@
 #!/usr/bin/env node
-/**
- * @module TurboCrawl
- */
 
 const VERSION = "0.1.0"
 const NAME = "Turbo Crawl"
