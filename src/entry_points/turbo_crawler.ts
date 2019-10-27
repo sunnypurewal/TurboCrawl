@@ -6,11 +6,14 @@ import FileConsumer from "../crawler/consumers/file"
 import chalk from "chalk"
 const log = console.log
 import { accessSync, mkdirSync } from "fs"
+import { CrawlerFactory } from "../interface"
+import DefaultCrawlerFactory from "../crawler/default_factory"
 const { str2url } = require("hittp")
 
 
 export default class TurboCrawler {
   private crawlers: Crawler[] = []
+  private crawlerFactory: CrawlerFactory
   private server = createServer()
   public get port(): number {
     return this._port
@@ -21,9 +24,10 @@ export default class TurboCrawler {
   private _port: number
   private _host: string
   
-  constructor(port: number = PORT, host: string = HOST) {
+  constructor(port: number = PORT, host: string = HOST, crawlerFactory: CrawlerFactory = new DefaultCrawlerFactory()) {
     this._port = port
     this._host = host
+    this.crawlerFactory = crawlerFactory
   }
 
   start(callback: ()=>void) {
@@ -115,9 +119,7 @@ export default class TurboCrawler {
           log("Crawling", urls.length, urls.length > 1 ? "URLs" : "URL")
           let path = "./.turbocrawl/crawled"
           for (let url of urls) {
-            let filepath = `${path}/${url.host}.ndjson`
-            const consumer = new FileConsumer(url, {filepath, flags: "w"})
-            const crawler = new Crawler(url, consumer)
+            const crawler = this.crawlerFactory.create(url)
             this.crawlers.push(crawler)
             crawler.on("exit", () => {
               console.log("Crawler exited", url.href)

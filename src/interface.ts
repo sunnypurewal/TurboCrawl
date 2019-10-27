@@ -1,4 +1,9 @@
 import { Readable, Transform, Writable } from "stream"
+import Crawler from "./crawler/crawler"
+
+export interface CrawlerFactory {
+  create(domain: URL): Crawler
+}
 
 export interface URLHandler {
   /**
