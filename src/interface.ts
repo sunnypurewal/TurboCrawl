@@ -29,7 +29,7 @@ export class ParsedPageConsumer extends Writable {
   }
 }
 
-export interface LinkDetector extends Readable {
+export interface LinkDetector {
   domain: URL
   options?: any
 }

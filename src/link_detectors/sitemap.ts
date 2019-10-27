@@ -19,7 +19,7 @@ class GetSitemapTransformStream extends Transform {
   }
 }
 
-export default class SitemapLinkDetector extends Readable implements LinkDetector {
+export default class SitemapLinkDetector extends PassThrough implements LinkDetector {
   domain: URL
   options?: any
   private mapper: any
@@ -29,7 +29,7 @@ export default class SitemapLinkDetector extends Readable implements LinkDetecto
     const transformer = new GetSitemapTransformStream(options)
     this.domain = domain
     this.options = options
-    this.mapper = new SiteMapper(domain)
+    this.mapper = new SiteMapper(domain.href)
     this.mapper.map(options.startDate).pipe(this).pipe(transformer)
   }
   _destroy(error: Error | null, callback: (error: Error | null) => void) {
