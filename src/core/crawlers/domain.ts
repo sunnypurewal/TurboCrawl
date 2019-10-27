@@ -6,21 +6,26 @@
  * There is a single URLHandler that processes the
  * URL and emits a {@link WebPage | "url, html"} object
  */
-import { Scraper, URLHandler, Crawler } from "../interface";
+import { Scraper, URLHandler, Crawler } from "../../interface";
 import { EventEmitter } from "events";
 import { Readable, Writable } from "stream";
-import SitemapLinkDetector from "./link_detectors/sitemap";
-import HTTPURLHandler from "./url_handlers/http";
+import SitemapLinkDetector from "../link_detectors/sitemap";
+import HTTPURLHandler from "../url_handlers/http";
 import hittp from "hittp";
-import MetadataScraper from "./scrapers/metadata";
+import MetadataScraper from "../scrapers/metadata";
+import { v4 as uuidv4 } from "uuid"
 
 hittp.configure({cachePath: "./.cache"})
 export default class DomainCrawler extends EventEmitter implements Crawler {
-  public domain:URL
+  private domain: URL
   private detector: Readable
   private consumer: Writable
   private urlHandler: URLHandler
   private scraper: Scraper
+  public get id(): string {
+    return this._id
+  }
+  private _id: string
   constructor(domain: URL, consumer: Writable, scraper?: Scraper, detector?: Readable, urlHandler?: URLHandler) {
       super()
       this.domain = domain
@@ -28,6 +33,7 @@ export default class DomainCrawler extends EventEmitter implements Crawler {
       this.consumer = consumer
       this.urlHandler = urlHandler || new HTTPURLHandler()
       this.scraper = scraper || new MetadataScraper()
+      this._id = uuidv4()
   }
 
   start() {

@@ -1,14 +1,15 @@
-import { Readable, Transform, Writable } from "stream"
+import { Readable, Transform, Writable, EventEmitter } from "stream"
 
 export interface CrawlerFactory {
   create(domain: URL): Crawler
 }
 
-export interface Crawler {
+export interface Crawler extends EventEmitter {
   start(): void
   pause(): void
   resume(): void
   exit(): void
+  id: string
 }
 
 export interface URLHandler {

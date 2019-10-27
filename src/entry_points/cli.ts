@@ -8,8 +8,12 @@ let port = PORT
 let host = HOST.slice()
 import chalk from "chalk"
 import { str2url } from "hittp"
-import { start, crawl, bulkCrawl, exit, list, pause, end, resume, random, country, genreddit, gencountries, endall } from "../cli/commands"
-import { readFileSync, accessSync, mkdirSync } from "fs"
+import { pause, end, endall, resume} from "../commands/crawl"
+import { start, exit } from "../cli/commands"
+import { accessSync, mkdirSync } from "fs"
+import { list } from "../commands/get"
+import generate from "../cli/generate"
+import crawl from "../cli/crawl"
 
 
 try {
@@ -32,9 +36,7 @@ if (process.argv[2] === undefined) {
 
 const url = str2url(process.argv[2])
 if (url) {
-  crawl(port, host, url, (success) => {
-    log(success ? `${chalk.greenBright(url.href)} is being crawled` : `Failed to crawl ${chalk.redBright(url.href)}`)
-  })
+  crawl(port, host, [...process.argv.slice(), url.href])
 } else {
   const command = process.argv[2]
   if (command === "start") {
@@ -98,43 +100,9 @@ if (url) {
       })
     }
   } else if (command === "generate") {
-    let arg = process.argv[3]
-    if (arg === "reddit") {
-      log("Scraping", chalk.bold("/r/politics white list"), "for domain names")
-      genreddit((count) => {
-        log(count > 0 ? 
-          chalk.greenBright(`Scraped ${count} domain names from /r/politics white list.`)
-          : chalk.redBright("Failed to scrape anything from /r/politics white list"))
-      })
-    } else if (arg === "countries") {
-      log("Scraping", chalk.bold("Wikipedia Category:News websites by country"), "for domain names")
-      gencountries((count) => {
-        log(count > 0 ? 
-          chalk.greenBright(`Scraped ${count} domain names from Wikipedia Category: ${chalk.bold("News websites by country")}`)
-          : chalk.redBright(`Failed to scrape anything from Wikipedia Category: ${chalk.bold("News websites by country")}`))
-      })
-    }
+    generate(process.argv.slice())
   } else if (command === "crawl") {
-    let arg = process.argv[3]
-    if (arg === "random") {
-      random(port, host, (url) => {
-        log((url ? chalk.greenBright(`Randomly selected ${url.href} for crawling`) : chalk.redBright("Turbo Crawl failed to random crawl")))
-      })
-    } else if (arg === "-f") {
-      arg = process.argv[4]
-      if (arg && arg.length > 0) {
-        let domains: Buffer|string|any = readFileSync(arg)
-        domains = domains.toString()
-        domains = JSON.parse(domains)
-        domains = domains.map((d: string) => { return str2url(d) }) as URL[]
-        log(`Crawling ${chalk.greenBright(domains.length.toString())} domains`)
-        bulkCrawl(port, host, domains)
-      }
-    } else {
-      country(port, host, arg.toLowerCase(), () => {
-        log(chalk.greenBright(`Turbo Crawl will crawl ${arg} news` ))
-      })
-    }
+    crawl(port, host, process.argv.slice())
   } else if (command === "watch") {
     let arg = process.argv[3]
     let url = str2url(arg)

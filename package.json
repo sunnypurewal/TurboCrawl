@@ -3,7 +3,7 @@
   "version": "0.2.3",
   "description": "The simple and fast crawling framework. So you can focus on scraping.",
   "bin": {
-    "tcrawl": "build/cli/tcrawl.js"
+    "tcrawl": "build/entry_points/cli.js"
   },
   "main": "build/index.js",
   "scripts": {

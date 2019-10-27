@@ -1,14 +1,12 @@
-import Crawler from "../crawler/crawler"
 import { createServer, IncomingMessage, ServerResponse } from "http"
 import { Socket } from "net"
 import { PORT, HOST } from "../env"
 import chalk from "chalk"
-const log = console.log
 import { accessSync, mkdirSync } from "fs"
-import { CrawlerFactory } from "../interface"
-import DefaultCrawlerFactory from "../crawler/default_factory"
-const { str2url } = require("hittp")
-
+import { CrawlerFactory, Crawler } from "../interface"
+import DefaultCrawlerFactory from "../core/factories/domain"
+import { str2url } from "hittp"
+const log = console.log
 
 export default class Server {
   private crawlers: Crawler[] = []
@@ -65,8 +63,8 @@ export default class Server {
       if (method === "GET") {
         if (urlcopy === "/list") {
           try {
-            let crawlerstrings: string|Crawler[]|string[] = this.crawlers.map((c) => {
-              return c.domain.href
+            let crawlerstrings: any = this.crawlers.map((c) => {
+              return {id: c.id}
             }) || []
             crawlerstrings = JSON.stringify({crawlerstrings})
             response.writeHead(200, {"Content-Type": "application/json",
@@ -129,24 +127,23 @@ export default class Server {
           response.write(JSON.stringify({success:true}))
           response.end()
         } else if (urlcopy === "/end") {
-          let urls: URL[] = []
+          let ids: string[] = []
           if (body.length) {
             // const random = Math.floor(Math.random() * body.length)
-            for (let urlstring of body/*.slice(random, random + 2)*/) {
-              let url = str2url(urlstring)
-              if (url) {
-                urls.push(url)
+            for (let idstring of body/*.slice(random, random + 2)*/) {
+              if (idstring && idstring.length > 0) {
+                ids.push(idstring)
               }
             }
           } else {
-            let url = str2url(body["url"])
-            if (url) {
-              urls.push(url)
+            let idstring = body["id"]
+            if (idstring && idstring.length > 0) {
+              ids.push(idstring)
             }
           }
-          for (let url of urls) {
+          for (let id of ids) {
             let index = this.crawlers.findIndex((v) => {
-              return v.domain.host === url.host
+              return v.id === id
             })
             if (index !== -1) {
               const crawler = this.crawlers.splice(index, 1)[0]
@@ -160,11 +157,22 @@ export default class Server {
           this.crawlers = []
           response.statusCode = 200
           response.end()
-        } else if (urlcopy === "/pause") {
-          let url = str2url(body["url"])
-          if (url) {
+        } else if (urlcopy === "/pauseall") {
+          this.crawlers.forEach(c=>c.pause())
+          this.crawlers = []
+          response.statusCode = 200
+          response.end()
+        } else if (urlcopy === "/resumeall") {
+          this.crawlers.forEach(c=>c.resume())
+          this.crawlers = []
+          response.statusCode = 200
+          response.end()
+        }
+        else if (urlcopy === "/pause") {
+          let id = body["id"]
+          if (id && id.length > 0) {
             let index = this.crawlers.findIndex((v) => {
-              return v.domain.host === url.host
+              return v.id === id
             })
             if (index !== -1) {
               const paused = this.crawlers[index]
@@ -175,12 +183,15 @@ export default class Server {
               response.statusCode = 404
               response.end()
             }
+          } else {
+            response.statusCode = 400
+            response.end()
           }
         } else if (urlcopy === "/resume") {
-          let url = str2url(body["url"])
-          if (url) {
+          let id = body["id"]
+          if (id && id.length > 0) {
             let index = this.crawlers.findIndex((v) => {
-              return v.domain.host === url.host
+              return v.id === id
             })
             if (index !== -1) {
               const deleted = this.crawlers.splice(index, 1)[0]
@@ -191,6 +202,9 @@ export default class Server {
               response.statusCode = 404
               response.end()
             }
+          } else {
+            response.statusCode = 400
+            response.end()
           }
         }
       }
