@@ -2,7 +2,7 @@
  * These are the commands that can be run from the tcrawl command line.
  */
 
-import TurboCrawler from "../entry_points/turbo_crawler"
+import TurboCrawler from "../entry_points/server"
 import { readFileSync, unlink, accessSync, mkdirSync, readdirSync } from "fs"
 import { request } from "http"
 const { str2url } = require("hittp")

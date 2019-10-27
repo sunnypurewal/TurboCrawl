@@ -8,7 +8,7 @@ let port = PORT
 let host = HOST.slice()
 import chalk from "chalk"
 import { str2url } from "hittp"
-import { start, crawl, bulkCrawl, exit, list, pause, end, resume, random, country, genreddit, gencountries, endall } from "../cli/tcrawl_commands"
+import { start, crawl, bulkCrawl, exit, list, pause, end, resume, random, country, genreddit, gencountries, endall } from "../cli/commands"
 import { readFileSync, accessSync, mkdirSync } from "fs"
 
 

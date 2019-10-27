@@ -2,7 +2,6 @@ const hittp = require("hittp")
 import { URLHandler, onURLHandledCallback, onHTMLStreamCallback } from "../../interface"
 import stream from "stream"
 
-
 export default class HTTPURLHandler implements URLHandler {
   handle(url: URL, callback: onURLHandledCallback) {
     hittp.get(url).then((html: string|Buffer) => {

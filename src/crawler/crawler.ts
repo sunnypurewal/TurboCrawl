@@ -1,21 +1,21 @@
 /**
- * The Crawler class is responsible for crawling a single website.
+ * The DomainCrawler class is responsible for crawling a single website.
  * It takes a root domain as input (e.g. "reuters.com")
  * @remarks
  * The root domain is run through each {@link LinkDetector}
  * There is a single URLHandler that processes the
  * URL and emits a {@link WebPage | "url, html"} object
  */
-import { Scraper, URLHandler } from "../interface";
+import { Scraper, URLHandler, Crawler } from "../interface";
 import { EventEmitter } from "events";
 import { Readable, Writable } from "stream";
 import SitemapLinkDetector from "./link_detectors/sitemap";
-import HTTPURLHandler from "./url_handlers/url_handler";
+import HTTPURLHandler from "./url_handlers/http";
 import hittp from "hittp";
 import MetadataScraper from "./scrapers/metadata";
 
 hittp.configure({cachePath: "./.cache"})
-export default class Crawler extends EventEmitter {
+export default class DomainCrawler extends EventEmitter implements Crawler {
   public domain:URL
   private detector: Readable
   private consumer: Writable

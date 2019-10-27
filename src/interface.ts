@@ -1,8 +1,14 @@
 import { Readable, Transform, Writable } from "stream"
-import Crawler from "./crawler/crawler"
 
 export interface CrawlerFactory {
   create(domain: URL): Crawler
+}
+
+export interface Crawler {
+  start(): void
+  pause(): void
+  resume(): void
+  exit(): void
 }
 
 export interface URLHandler {
@@ -17,24 +23,12 @@ export interface URLHandler {
   cancel(host: string): void
 }
 
-export class WebPageParser extends Transform {
-  static create(url: URL, htmlstream: Readable, options?: any): WebPageParser {
-    throw new Error("Not implemented")
-  }
-}
-
 export interface CrawlConsumer extends Writable {
   domain: URL
   options?: any
 }
 
-export class ParsedPageConsumer extends Writable {
-  static create(url: URL, parsedPageStream: Readable, options?: any): ParsedPageConsumer {
-    throw new Error("Not implemented")
-  }
-}
-
-export interface LinkDetector {
+export interface LinkDetector extends Readable {
   domain: URL
   options?: any
 }
