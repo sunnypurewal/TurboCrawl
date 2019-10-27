@@ -18,7 +18,7 @@ class GetSitemapTransformStream extends Transform {
   }
 }
 
-export default class SitemapLinkDetector extends PassThrough {
+export default class SitemapLinkDetector extends Readable {
   private stream: Readable|undefined
   private mapper: any
   constructor(domain: string, options: any) {
@@ -27,7 +27,8 @@ export default class SitemapLinkDetector extends PassThrough {
     this.mapper = new SiteMapper(domain)
     this.mapper.map(options.startDate).pipe(this).pipe(transformer)
   }
-  cancel() {
+  _destroy(error: Error | null, callback: (error?: Error | null) => void) {
     this.mapper.cancel()
+    callback()
   }
 }

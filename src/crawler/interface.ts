@@ -24,6 +24,16 @@ export class ParsedPageConsumer extends Writable {
   }
 }
 
+/**
+ * Scrapers must implement this one method that returns a transform stream.
+ * create() will be called on each url handled 
+ * and the html will stream to the Transform stream returned from create().
+ * See MetadataScraper for a default implementation
+ */
+export interface Scraper {
+  create(options?: any): Transform
+}
+
 export interface ParsedWebPage {
   webpage: WebPage
   result: any

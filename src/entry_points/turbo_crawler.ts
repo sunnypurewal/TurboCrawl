@@ -112,7 +112,7 @@ export default class TurboCrawler {
             }
           }
 
-          console.log("Crawling", urls.length, urls.length > 1 ? "URLs" : "URL")
+          log("Crawling", urls.length, urls.length > 1 ? "URLs" : "URL")
           let path = "./.turbocrawl/crawled"
           for (let url of urls) {
             let filepath = `${path}/${url.host}.ndjson`

@@ -6,31 +6,32 @@
  * There is a single URLHandler that processes the
  * URL and emits a {@link WebPage | "url, html"} object
  */
-import { WebPageParser, ParsedPageConsumer, URLHandler } from "./interface";
-import FileConsumer from "./consumers/file";
+import { Scraper, URLHandler } from "./interface";
 import { EventEmitter } from "events";
 import MetaDataParser from "./parsers/metadata";
-import { Readable } from "stream";
+import { Readable, Writable } from "stream";
 import SitemapLinkDetector from "../link_detectors/sitemap";
 import HTTPURLHandler from "./url_handlers/url_handler";
-const hittp = require("hittp")
+import hittp from "hittp";
+import MetadataScraper from "./parsers/metadata";
 
 hittp.configure({cachePath: "./.cache"})
 export default class Crawler extends EventEmitter {
   public domain:URL
-  private detector: SitemapLinkDetector
-  private consumer: ParsedPageConsumer
+  private detector: Readable
+  private consumer: Writable
   private urlHandler: URLHandler
-  constructor(domain:string, consumer: FileConsumer,
-    ) {
+  private scraper: Scraper
+  constructor(domain:string, consumer: Writable, scraper?: Scraper, detector?: Readable, urlHandler?: URLHandler) {
       super()
       this.domain = hittp.str2url(domain)
       if (!this.domain) {
         throw new Error("Invalid domain sent to Crawler constructor")
       }
-      this.detector = new SitemapLinkDetector(this.domain.host, {startDate: "2019-10-21"})
+      this.detector = detector || new SitemapLinkDetector(this.domain.host, {startDate: new Date(Date.now()-86400)})
       this.consumer = consumer
-      this.urlHandler = new HTTPURLHandler()
+      this.urlHandler = urlHandler || new HTTPURLHandler()
+      this.scraper = scraper || new MetadataScraper()
   }
 
   start() {
@@ -45,8 +46,8 @@ export default class Crawler extends EventEmitter {
       const url: URL = hittp.str2url(chunkstring.split("||")[0])
       this.urlHandler.stream(url, (url, htmlstream, err) => {
         if (htmlstream) {
-          const parser = new MetaDataParser()
-          htmlstream.pipe(parser).pipe(this.consumer, {end: false})
+          const scraper = this.scraper.create()
+          htmlstream.pipe(scraper).pipe(this.consumer, {end: false})
         }
       })
     })
@@ -66,7 +67,6 @@ export default class Crawler extends EventEmitter {
 
   exit() {
     // console.log("Link detector destroy", this.domain.href)
-    this.detector.cancel()
     this.detector.destroy()
     this.consumer.destroy()
     this.emit("exit")

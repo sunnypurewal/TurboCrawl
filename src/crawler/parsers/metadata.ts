@@ -1,13 +1,16 @@
 import {Transform, TransformCallback } from "stream"
+import { Scraper } from "../interface"
 
-//implement HTMLHandler
-//then add it to crawler.htmlHandlers as default handler
-//then call all handlers after urlhandler is called
+export default class MetadataScraper implements Scraper {
+  create(options?: any): MetadataScrapeStream {
+    return new MetadataScrapeStream(options)
+  }
+}
 /**
  * This is the default WebPageParser. 
  * Custom parsers should extend this class.
  */
-export default class MetadataParser extends Transform {
+class MetadataScrapeStream extends Transform {
   open: any
   lastChunk: any
   chunks: Buffer[]
