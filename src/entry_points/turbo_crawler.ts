@@ -1,12 +1,13 @@
 import Crawler from "../crawler/crawler"
 import { createServer, IncomingMessage, ServerResponse } from "http"
 import { Socket } from "net"
-import { PORT, HOST } from "./env"
+import { PORT, HOST } from "../env"
 import FileConsumer from "../crawler/consumers/file"
 import chalk from "chalk"
 const log = console.log
 import { accessSync, mkdirSync } from "fs"
 const { str2url } = require("hittp")
+
 
 export default class TurboCrawler {
   private crawlers: Crawler[] = []

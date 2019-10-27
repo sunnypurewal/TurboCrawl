@@ -1,4 +1,8 @@
-import TurboCrawler from "./turbo_crawler"
+/**
+ * These are the commands that can be run from the tcrawl command line.
+ */
+
+import TurboCrawler from "../entry_points/turbo_crawler"
 import { readFileSync, unlink, accessSync, mkdirSync, readdirSync } from "fs"
 import { request } from "http"
 const { str2url } = require("hittp")
@@ -7,7 +11,10 @@ import GenerateReddit from "../scripts/redditpage"
 import GenerateCountries from "../scripts/country"
 import { join } from "path"
 
-
+/**
+ * Scrapes /r/politics for a list of domains that can be used for crawling
+ * @param callback 
+ */
 export function genreddit(callback: (count: number) => void) {
   GenerateReddit(callback)
 }

@@ -1,17 +1,19 @@
 #!/usr/bin/env node
+/**
+ * @module TurboCrawl
+ */
+
 const VERSION = "0.1.0"
 const NAME = "Turbo Crawl"
 const log = console.log
-const DEFAULT_PORT = parseInt(process.env["PORT_TCRAWL"] || "8088")
-let port = DEFAULT_PORT
-const DEFAULT_HOST = process.env["HOST_TCRAWL"] || "localhost"
-let host = DEFAULT_HOST
+import { PORT, HOST } from "../env"
+let port = PORT
+let host = HOST.slice()
 import chalk from "chalk"
-const { str2url } = require("hittp")
-import { start, crawl, bulkCrawl, exit, list, pause, end, resume, random, country, genreddit, gencountries, endall } from "./tcrawl_commands"
+import { str2url } from "hittp"
+import { start, crawl, bulkCrawl, exit, list, pause, end, resume, random, country, genreddit, gencountries, endall } from "../cli/tcrawl_commands"
 import { readFileSync, accessSync, mkdirSync } from "fs"
 
-let COUNTRIES: string[] = []
 
 try {
   accessSync("./.turbocrawl/")
@@ -115,9 +117,7 @@ if (url) {
           : chalk.redBright(`Failed to scrape anything from Wikipedia Category: ${chalk.bold("News websites by country")}`))
       })
     }
-  }
-  
-  else if (command === "crawl") {
+  } else if (command === "crawl") {
     let arg = process.argv[3]
     if (arg === "random") {
       random(port, host, (url) => {
@@ -138,5 +138,10 @@ if (url) {
         log(chalk.greenBright(`Turbo Crawl will crawl ${arg} news` ))
       })
     }
+  } else if (command === "watch") {
+    let arg = process.argv[3]
+    let url = str2url(arg)
+    if (!url) throw new Error(`Invalid URL ->${arg}<- passed as argument`)
+
   }
 }

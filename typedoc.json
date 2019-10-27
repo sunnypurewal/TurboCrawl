@@ -1,0 +1,6 @@
+{
+  "mode": "modules",
+  "out": "docs",
+  "private": false,
+  "json": "docs/docs.json"
+}
