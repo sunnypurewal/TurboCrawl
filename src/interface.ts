@@ -10,6 +10,11 @@ export interface Crawler extends EventEmitter {
   resume(): void
   exit(): void
   id: string
+  detector: Readable
+  consumer: Writable
+  urlHandler: URLHandler
+  scraper: Scraper
+  domain: URL
 }
 
 export interface URLHandler {

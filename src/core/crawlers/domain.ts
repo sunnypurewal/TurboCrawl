@@ -17,11 +17,11 @@ import { v4 as uuidv4 } from "uuid"
 
 hittp.configure({cachePath: "./.cache"})
 export default class DomainCrawler extends EventEmitter implements Crawler {
-  private domain: URL
-  private detector: Readable
-  private consumer: Writable
-  private urlHandler: URLHandler
-  private scraper: Scraper
+  domain: URL
+  detector: Readable
+  consumer: Writable
+  urlHandler: URLHandler
+  scraper: Scraper
   public get id(): string {
     return this._id
   }
