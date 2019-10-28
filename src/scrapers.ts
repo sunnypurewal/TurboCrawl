@@ -1,7 +1,16 @@
 import {Transform, TransformCallback } from "stream"
-import { Scraper } from "../../interface"
+import { IScraper } from "./scrapers"
+/**
+ * Scrapers must implement this one method that returns a transform stream.
+ * create() will be called on each url handled 
+ * and the html will stream to the Transform stream returned from create().
+ * See MetadataScraper for a default implementation
+ */
+export interface IScraper {
+  create(options?: any): Transform
+}
 
-export default class MetadataScraper implements Scraper {
+export default class MetadataScraper implements IScraper {
   create(options?: any): MetadataScrapeStream {
     return new MetadataScrapeStream(options)
   }

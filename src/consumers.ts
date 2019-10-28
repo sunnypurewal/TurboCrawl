@@ -1,9 +1,12 @@
-import { CrawlConsumer } from "../../interface";
 import { Writable } from "stream";
 import { createWriteStream, PathLike, WriteStream } from "fs"
 
+export interface ICrawlConsumer extends Writable {
+  domain: URL
+  options?: any
+}
 
-export default class FileConsumer extends Writable implements CrawlConsumer {
+export default class FileConsumer extends Writable implements ICrawlConsumer {
   domain: URL;
   options?: any;
   filestream: Writable

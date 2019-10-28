@@ -1,3 +1,24 @@
+import { EventEmitter } from "events";
+import { Readable, Writable } from "stream";
+import SitemapLinkDetector, {ILinkDetector} from "./detectors";
+import HTTPURLHandler, {IURLHandler} from "./url_handlers";
+import hittp from "hittp";
+import MetadataScraper, {IScraper} from "./scrapers";
+import {ICrawlConsumer} from "./consumers"
+import { v4 as uuidv4 } from "uuid"
+
+export interface ICrawler extends EventEmitter {
+  start(): void
+  pause(): void
+  resume(): void
+  exit(): void
+  id: string
+  detector: ILinkDetector
+  consumer: ICrawlConsumer
+  urlHandler: IURLHandler
+  scraper: IScraper
+  domain: URL
+}
 /**
  * The DomainCrawler class is responsible for crawling a single website.
  * It takes a root domain as input (e.g. "reuters.com")
@@ -6,28 +27,20 @@
  * There is a single URLHandler that processes the
  * URL and emits a {@link WebPage | "url, html"} object
  */
-import { Scraper, URLHandler, Crawler } from "../../interface";
-import { EventEmitter } from "events";
-import { Readable, Writable } from "stream";
-import SitemapLinkDetector from "../link_detectors/sitemap";
-import HTTPURLHandler from "../url_handlers/http";
-import hittp from "hittp";
-import MetadataScraper from "../scrapers/metadata";
-import { v4 as uuidv4 } from "uuid"
 
-hittp.configure({cachePath: "./.cache"})
-export default class DomainCrawler extends EventEmitter implements Crawler {
+export default class DomainCrawler extends EventEmitter implements ICrawler {
   domain: URL
-  detector: Readable
-  consumer: Writable
-  urlHandler: URLHandler
-  scraper: Scraper
+  detector: ILinkDetector
+  consumer: ICrawlConsumer
+  urlHandler: IURLHandler
+  scraper: IScraper
   public get id(): string {
     return this._id
   }
   private _id: string
-  constructor(domain: URL, consumer: Writable, scraper?: Scraper, detector?: Readable, urlHandler?: URLHandler) {
+  constructor(domain: URL, consumer: ICrawlConsumer, scraper?: IScraper, detector?: ILinkDetector, urlHandler?: IURLHandler) {
       super()
+      hittp.configure({cachePath: "./.cache"})
       this.domain = domain
       this.detector = detector || new SitemapLinkDetector(this.domain, {startDate: new Date(Date.now()-86400)})
       this.consumer = consumer
@@ -37,12 +50,6 @@ export default class DomainCrawler extends EventEmitter implements Crawler {
   }
 
   start() {
-    this.detector.on("end", () => {
-      console.log("Link detector has finished queueing requests for", this.domain.href)
-    })
-    // this.detector.on("close", () => {
-    //   console.log("Link detector closed", this.domain.href)
-    // })
     this.detector.on("data", (chunk) => {
       let chunkstring = chunk.toString()
       const url: URL = hittp.str2url(chunkstring.split("||")[0])
@@ -56,19 +63,16 @@ export default class DomainCrawler extends EventEmitter implements Crawler {
   }
 
   pause() {
-    // console.log("Link detector paused", this.domain.href)
     this.detector.pause()
   }
 
   resume() {
     if (this.detector.listenerCount("data") > 0) {
-      // console.log("Link detector resumed", this.domain.href)
       this.detector.resume()
     }
   }
 
   exit() {
-    // console.log("Link detector destroy", this.domain.href)
     this.detector.destroy()
     this.consumer.destroy()
     this.emit("exit")

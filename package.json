@@ -6,6 +6,10 @@
     "tcrawl": "build/entry_points/cli.js"
   },
   "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "files": [
+    "build"
+  ],
   "scripts": {
     "build": "tsc",
     "postbuild": "chmod +x build/cli/tcrawl.js",
@@ -49,6 +53,7 @@
     "@types/uuid": "^3.4.5",
     "jsdom": "^15.2.0",
     "knuth-shuffle": "^1.0.8",
+    "tslint": "^5.20.0",
     "typedoc": "^0.15.0",
     "typedoc-plugin-external-module-name": "^2.1.0",
     "typescript": "^3.6.4"

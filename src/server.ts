@@ -1,16 +1,16 @@
 import { createServer, IncomingMessage, ServerResponse } from "http"
 import { Socket } from "net"
-import { PORT, HOST } from "../env"
+import { PORT, HOST } from "./env"
 import chalk from "chalk"
 import { accessSync, mkdirSync } from "fs"
-import { CrawlerFactory, Crawler } from "../interface"
-import DefaultCrawlerFactory from "../core/factories/domain"
+import DomainCrawler, {ICrawler} from "./crawlers"
+import DomainCrawlerFactory, {ICrawlerFactory} from "./factories"
 import { str2url } from "hittp"
 const log = console.log
 
 export default class Server {
-  private crawlers: Crawler[] = []
-  private crawlerFactory: CrawlerFactory
+  private crawlers: ICrawler[] = []
+  private crawlerFactory: ICrawlerFactory
   private server = createServer()
   public get port(): number {
     return this._port
@@ -21,7 +21,7 @@ export default class Server {
   private _port: number
   private _host: string
   
-  constructor(port: number = PORT, host: string = HOST, crawlerFactory: CrawlerFactory = new DefaultCrawlerFactory()) {
+  constructor(port: number = PORT, host: string = HOST, crawlerFactory: ICrawlerFactory = new DomainCrawlerFactory()) {
     this._port = port
     this._host = host
     this.crawlerFactory = crawlerFactory

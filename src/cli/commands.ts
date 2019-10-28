@@ -2,7 +2,7 @@
  * These are the commands that can be run from the tcrawl command line.
  */
 
-import TurboCrawler from "../entry_points/server"
+import TurboCrawler from "../server"
 import { request } from "http"
 
 export function exit(port: number, host: string, callback: (success: boolean)=>void) {
