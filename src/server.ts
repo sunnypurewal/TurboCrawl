@@ -20,19 +20,28 @@ export default class Server {
   private crawlers: ICrawler[] = []
   private crawlerFactory: ICrawlerFactory
   private server = createServer()
+  private Port: number
+  private Host: string
   public get port(): number {
     return this.Port
   }
   public get host(): string {
     return this.Host
   }
-  private Port: number
-  private Host: string
 
   constructor(port: number = PORT, host: string = HOST, crawlerFactory: ICrawlerFactory = new DomainCrawlerFactory()) {
     this.Port = port
     this.Host = host
     this.crawlerFactory = crawlerFactory
+  }
+
+  public close() {
+    for (const crawler of this.crawlers) {
+      crawler.exit()
+    }
+    this.server.close((err) => {
+      if (err) { log(err) }
+    })
   }
 
   public listen(callback: () => void) {
@@ -51,7 +60,7 @@ export default class Server {
     } )
   }
 
-  public onrequest(request: IncomingMessage, response: ServerResponse) {
+  private onrequest(request: IncomingMessage, response: ServerResponse) {
     response.on("error", (err) => {
       log(err)
     })
@@ -86,15 +95,6 @@ export default class Server {
             response.statusCode = 400
             response.end()
           }
-        } else if (urlcopy === "/exit") {
-          for (const crawler of this.crawlers) {
-            crawler.exit()
-          }
-          response.statusCode = 200
-          response.end()
-          this.server.close((err) => {
-            if (err) { log(err) }
-          })
         }
       }
       if (method === "POST") {
@@ -220,15 +220,15 @@ export default class Server {
     })
   }
 
-  public onconnect(req: IncomingMessage, socket: Socket, head: Buffer) {
+  private onconnect(req: IncomingMessage, socket: Socket, head: Buffer) {
     log("TurboCrawler received connection")
   }
 
-  public onclienterror(err: any, socket: Socket) {
+  private onclienterror(err: any, socket: Socket) {
     log("Client Error", err)
   }
 
-  public onclose() {
+  private onclose() {
     log(chalk.blueBright("Turbo Crawl has exited"))
   }
 
