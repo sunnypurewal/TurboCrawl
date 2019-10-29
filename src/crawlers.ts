@@ -1,23 +1,23 @@
 import { EventEmitter } from "events";
-import { Readable, Writable } from "stream";
-import SitemapLinkDetector, {ILinkDetector} from "./detectors";
-import HTTPURLHandler, {IURLHandler} from "./url_handlers";
 import hittp from "hittp";
-import MetadataScraper, {IScraper} from "./scrapers";
-import {ICrawlConsumer} from "./consumers"
 import { v4 as uuidv4 } from "uuid"
+import { ICrawlConsumer } from "./consumers"
+import SitemapLinkDetector, {ILinkDetector} from "./detectors";
+import { IScraper } from "./scrapers"
+import MetadataScraper from "./scrapers";
+import HTTPURLHandler, {IURLHandler} from "./url_handlers";
 
 export interface ICrawler extends EventEmitter {
-  start(): void
-  pause(): void
-  resume(): void
-  exit(): void
   id: string
   detector: ILinkDetector
   consumer: ICrawlConsumer
   urlHandler: IURLHandler
   scraper: IScraper
   domain: URL
+  start(): void
+  pause(): void
+  resume(): void
+  exit(): void
 }
 /**
  * The DomainCrawler class is responsible for crawling a single website.
@@ -29,29 +29,30 @@ export interface ICrawler extends EventEmitter {
  */
 
 export default class DomainCrawler extends EventEmitter implements ICrawler {
-  domain: URL
-  detector: ILinkDetector
-  consumer: ICrawlConsumer
-  urlHandler: IURLHandler
-  scraper: IScraper
-  public get id(): string {
-    return this._id
-  }
-  private _id: string
-  constructor(domain: URL, consumer: ICrawlConsumer, scraper?: IScraper, detector?: ILinkDetector, urlHandler?: IURLHandler) {
+  public domain: URL
+  public detector: ILinkDetector
+  public consumer: ICrawlConsumer
+  public urlHandler: IURLHandler
+  public scraper: IScraper
+  public id: string
+  constructor(domain: URL,
+              consumer: ICrawlConsumer,
+              scraper?: IScraper,
+              detector?: ILinkDetector,
+              urlHandler?: IURLHandler) {
       super()
       hittp.configure({cachePath: "./.cache"})
       this.domain = domain
-      this.detector = detector || new SitemapLinkDetector(this.domain, {startDate: new Date(Date.now()-86400)})
+      this.detector = detector || new SitemapLinkDetector(this.domain, {startDate: new Date(Date.now() - 86400)})
       this.consumer = consumer
       this.urlHandler = urlHandler || new HTTPURLHandler()
       this.scraper = scraper || new MetadataScraper()
-      this._id = uuidv4()
+      this.id = uuidv4()
   }
 
-  start() {
+  public start() {
     this.detector.on("data", (chunk) => {
-      let chunkstring = chunk.toString()
+      const chunkstring = chunk.toString()
       const url: URL = hittp.str2url(chunkstring.split("||")[0])
       this.urlHandler.stream(url, (url, htmlstream, err) => {
         if (htmlstream) {
@@ -62,17 +63,17 @@ export default class DomainCrawler extends EventEmitter implements ICrawler {
     })
   }
 
-  pause() {
+  public pause() {
     this.detector.pause()
   }
 
-  resume() {
+  public resume() {
     if (this.detector.listenerCount("data") > 0) {
       this.detector.resume()
     }
   }
 
-  exit() {
+  public exit() {
     this.detector.destroy()
     this.consumer.destroy()
     this.emit("exit")

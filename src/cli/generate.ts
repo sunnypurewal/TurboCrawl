@@ -1,14 +1,18 @@
 import chalk from "chalk"
-const log = console.log
-import { genreddit, gencountries } from "../commands/generate"
+import log4js from "log4js"
+import { gencountries, genreddit } from "../commands/generate"
+
+const logger = log4js.getLogger()
+logger.level = "debug"
+const log = logger.debug
 
 export default function generate(args: string[]) {
-  let arg = args[3]
+  const arg = args[3]
   if (!arg || arg.length === 0) {
-    log(chalk.blueBright("\nThe generate command:")  
+    log(chalk.blueBright("\nThe generate command:")
     + "\nAutomatically generates lists of websites to be crawled"
     + "\n  tcrawl generate reddit\n    Scrapes news websites from reddit.com/r/politics white list."
-    + "\n  tcrawl generate countries\n    Scrapes national news websites from " 
+    + "\n  tcrawl generate countries\n    Scrapes national news websites from "
     + chalk.bold("Wikipedia Category:News websites by country"))
     return
   } else if (arg === "reddit") {
@@ -22,8 +26,10 @@ export default function generate(args: string[]) {
     log("Scraping", chalk.bold("Wikipedia Category:News websites by country"), "for domain names")
     gencountries((count) => {
       log(count > 0 ? 
-        chalk.greenBright(`Scraped ${count} domain names from Wikipedia Category: ${chalk.bold("News websites by country")}`)
-        : chalk.redBright(`Failed to scrape anything from Wikipedia Category: ${chalk.bold("News websites by country")}`))
+        chalk.greenBright(`
+Scraped ${count} domain names from Wikipedia Category: ${chalk.bold("News websites by country")}`)
+        : chalk.redBright(`
+Failed to scrape anything from Wikipedia Category: ${chalk.bold("News websites by country")}`))
     })
   }
 }

@@ -1,14 +1,18 @@
-import { random, bulkCrawl, crawl as _crawl } from "../commands/crawl"
-import { country } from "../commands/country"
 import chalk from "chalk"
 import { readFileSync } from "fs"
 import { str2url } from "hittp"
-const log = console.log
+import log4js from "log4js"
+import { country } from "../commands/country"
+import { bulkCrawl, crawl as _crawl, random } from "../commands/crawl"
+
+const logger = log4js.getLogger()
+logger.level = "debug"
+const log = logger.debug
 
 export default function crawl(port: number, host: string, args: string[]) {
   let arg = args[3]
   if (!arg || arg.length === 0) {
-    log(chalk.blueBright("\nThe crawl command:")  
+    log(chalk.blueBright("\nThe crawl command:")
     + "\nSubmits a crawler to the server for execution"
     + "\n  tcrawl crawl www.replacethiswitharealwebsite.com\n    Begins crawling the website sent in as an argument. See server for logs."
     + "\n  tcrawl crawl random\n    Crawls a random news website."
@@ -26,7 +30,7 @@ export default function crawl(port: number, host: string, args: string[]) {
       let domains: Buffer|string|any = readFileSync(arg)
       domains = domains.toString()
       domains = JSON.parse(domains)
-      domains = domains.map((d: string) => { return str2url(d) }) as URL[]
+      domains = domains.map((d: string) => str2url(d)) as URL[]
       log(`Crawling ${chalk.greenBright(domains.length.toString())} domains`)
       bulkCrawl(port, host, domains)
     } else {

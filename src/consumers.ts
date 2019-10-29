@@ -1,5 +1,5 @@
+import { createWriteStream } from "fs"
 import { Writable } from "stream";
-import { createWriteStream, PathLike, WriteStream } from "fs"
 
 export interface ICrawlConsumer extends Writable {
   domain: URL
@@ -7,9 +7,9 @@ export interface ICrawlConsumer extends Writable {
 }
 
 export default class FileConsumer extends Writable implements ICrawlConsumer {
-  domain: URL;
-  options?: any;
-  filestream: Writable
+  public domain: URL;
+  public options?: any;
+  public filestream: Writable
   constructor(domain: URL, options?: any) {
     options = options || {}
     super(options)
@@ -17,7 +17,7 @@ export default class FileConsumer extends Writable implements ICrawlConsumer {
     this.options = options
     this.filestream = createWriteStream(options.filepath, options)
   }
-  _write(chunk: any, encoding: string, callback: (error?: Error | null) => void) {
+  public _write(chunk: any, encoding: string, callback: (error?: Error | null) => void) {
     this.filestream.write(chunk, callback)
   }
 }

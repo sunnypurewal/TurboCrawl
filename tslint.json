@@ -4,6 +4,10 @@
         "tslint:recommended"
     ],
     "jsRules": {},
-    "rules": {},
+    "rules": {
+        "semicolon": false,
+        "no-shadowed-variable": false,
+        "max-classes-per-file": false
+    },
     "rulesDirectory": []
 }

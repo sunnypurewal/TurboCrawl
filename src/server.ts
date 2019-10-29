@@ -1,34 +1,38 @@
-import { createServer, IncomingMessage, ServerResponse } from "http"
-import { Socket } from "net"
-import { PORT, HOST } from "./env"
 import chalk from "chalk"
 import { accessSync, mkdirSync } from "fs"
-import DomainCrawler, {ICrawler} from "./crawlers"
-import DomainCrawlerFactory, {ICrawlerFactory} from "./factories"
 import { str2url } from "hittp"
-const log = console.log
+import { createServer, IncomingMessage, ServerResponse } from "http"
+import log4js from "log4js"
+import { Socket } from "net"
+import {ICrawler} from "./crawlers"
+import { HOST, PORT } from "./env"
+import DomainCrawlerFactory, {ICrawlerFactory} from "./factories"
+
+const logger = log4js.getLogger()
+logger.level = "debug"
+const log = logger.debug
 
 export default class Server {
   private crawlers: ICrawler[] = []
   private crawlerFactory: ICrawlerFactory
   private server = createServer()
   public get port(): number {
-    return this._port
+    return this.Port
   }
   public get host(): string {
-    return this._host
+    return this.Host
   }
-  private _port: number
-  private _host: string
-  
+  private Port: number
+  private Host: string
+
   constructor(port: number = PORT, host: string = HOST, crawlerFactory: ICrawlerFactory = new DomainCrawlerFactory()) {
-    this._port = port
-    this._host = host
+    this.Port = port
+    this.Host = host
     this.crawlerFactory = crawlerFactory
   }
 
-  start(callback: ()=>void) {
-    let path = "./.turbocrawl/crawled"
+  public listen(callback: () => void) {
+    const path = "./.turbocrawl/crawled"
     try {
       accessSync(path)
     } catch (err) {
@@ -40,25 +44,25 @@ export default class Server {
     this.server.on("clientError", this.onclienterror)
     this.server.listen(this.port, this.host, () => {
       callback()
-    }, )
+    } )
   }
 
-  onrequest(request: IncomingMessage, response: ServerResponse) {
+  public onrequest(request: IncomingMessage, response: ServerResponse) {
     response.on("error", (err) => {
-      console.error(err)
+      log(err)
     })
 
     const { headers, method, url } = request;
     let body: any = [];
-    let urlcopy = url ? url.slice() : ""
+    const urlcopy = url ? url.slice() : ""
     // console.log(headers, method, url)
-    request.on('error', (err) => {
-      console.error(err);
+    request.on("error", (err) => {
+      log(err);
       response.statusCode = 400
       response.end()
-    }).on('data', (chunk) => {
+    }).on("data", (chunk) => {
       body.push(chunk);
-    }).on('end', () => {
+    }).on("end", () => {
       body = Buffer.concat(body).toString();
       if (method === "GET") {
         if (urlcopy === "/list") {
@@ -67,8 +71,10 @@ export default class Server {
               return {id: c.id}
             }) || []
             crawlerstrings = JSON.stringify({crawlerstrings})
-            response.writeHead(200, {"Content-Type": "application/json",
-                                     "Content-Length": crawlerstrings.length})
+            response.writeHead(200, {
+              "Content-Length": crawlerstrings.length,
+              "Content-Type": "application/json",
+            })
             response.write(crawlerstrings)
             response.end()
           } catch (err) {
@@ -83,7 +89,7 @@ export default class Server {
           response.statusCode = 200
           response.end()
           this.server.close((err) => {
-            if (err) console.error(err)
+            if (err) { log(err) }
           })
         }
       }
@@ -97,52 +103,52 @@ export default class Server {
           response.end()
         }
         if (urlcopy === "/") {
-          let urls: URL[] = []
+          const urls: URL[] = []
           if (body.length) {
             // const random = Math.floor(Math.random() * body.length)
-            for (let urlstring of body/*.slice(random, random + 2)*/) {
-              let url = str2url(urlstring)
+            for (const urlstring of body/*.slice(random, random + 2)*/) {
+              const url = str2url(urlstring)
               if (url) {
                 urls.push(url)
               }
             }
           } else {
-            let url = str2url(body["url"])
+            const url = str2url(body.url)
             if (url) {
               urls.push(url)
             }
           }
 
           log("Crawling", urls.length, urls.length > 1 ? "URLs" : "URL")
-          let path = "./.turbocrawl/crawled"
-          for (let url of urls) {
+          const path = "./.turbocrawl/crawled"
+          for (const url of urls) {
             const crawler = this.crawlerFactory.create(url)
             this.crawlers.push(crawler)
             crawler.on("exit", () => {
-              console.log("Crawler exited", url.href)
+              log("Crawler exited", url.href)
             })
             crawler.start()
           }
           response.statusCode = 200
-          response.write(JSON.stringify({success:true}))
+          response.write(JSON.stringify({success: true}))
           response.end()
         } else if (urlcopy === "/end") {
-          let ids: string[] = []
+          const ids: string[] = []
           if (body.length) {
             // const random = Math.floor(Math.random() * body.length)
-            for (let idstring of body/*.slice(random, random + 2)*/) {
+            for (const idstring of body/*.slice(random, random + 2)*/) {
               if (idstring && idstring.length > 0) {
                 ids.push(idstring)
               }
             }
           } else {
-            let idstring = body["id"]
+            const idstring = body.id
             if (idstring && idstring.length > 0) {
               ids.push(idstring)
             }
           }
-          for (let id of ids) {
-            let index = this.crawlers.findIndex((v) => {
+          for (const id of ids) {
+            const index = this.crawlers.findIndex((v) => {
               return v.id === id
             })
             if (index !== -1) {
@@ -153,25 +159,24 @@ export default class Server {
           response.statusCode = 200
           response.end()
         } else if (urlcopy === "/endall") {
-          this.crawlers.forEach(c=>c.exit())
+          this.crawlers.forEach((c) => c.exit())
           this.crawlers = []
           response.statusCode = 200
           response.end()
         } else if (urlcopy === "/pauseall") {
-          this.crawlers.forEach(c=>c.pause())
+          this.crawlers.forEach((c) => c.pause())
           this.crawlers = []
           response.statusCode = 200
           response.end()
         } else if (urlcopy === "/resumeall") {
-          this.crawlers.forEach(c=>c.resume())
+          this.crawlers.forEach((c) => c.resume())
           this.crawlers = []
           response.statusCode = 200
           response.end()
-        }
-        else if (urlcopy === "/pause") {
-          let id = body["id"]
+        } else if (urlcopy === "/pause") {
+          const id = body.id
           if (id && id.length > 0) {
-            let index = this.crawlers.findIndex((v) => {
+            const index = this.crawlers.findIndex((v) => {
               return v.id === id
             })
             if (index !== -1) {
@@ -188,9 +193,9 @@ export default class Server {
             response.end()
           }
         } else if (urlcopy === "/resume") {
-          let id = body["id"]
+          const id = body.id
           if (id && id.length > 0) {
-            let index = this.crawlers.findIndex((v) => {
+            const index = this.crawlers.findIndex((v) => {
               return v.id === id
             })
             if (index !== -1) {
@@ -211,15 +216,15 @@ export default class Server {
     })
   }
 
-  onconnect(req: IncomingMessage, socket: Socket, head: Buffer) {
-    console.log("TurboCrawler received connection")
+  public onconnect(req: IncomingMessage, socket: Socket, head: Buffer) {
+    log("TurboCrawler received connection")
   }
 
-  onclienterror(err: any, socket: Socket) {
-    console.error("Client Error", err)
+  public onclienterror(err: any, socket: Socket) {
+    log("Client Error", err)
   }
 
-  onclose() {
+  public onclose() {
     log(chalk.blueBright("Turbo Crawl has exited"))
   }
 

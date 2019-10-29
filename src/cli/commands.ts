@@ -2,18 +2,18 @@
  * These are the commands that can be run from the tcrawl command line.
  */
 
-import TurboCrawler from "../server"
 import { request } from "http"
+import TurboCrawler from "../server"
 
-export function exit(port: number, host: string, callback: (success: boolean)=>void) {
+export function exit(port: number, host: string, callback: (success: boolean) => void) {
   request({
     host,
+    path: "/exit",
     port,
-    path: "/exit"
   }, (res) => {
-    let body: any = []
+    const body: any = []
     res.on("error", (err) => {
-      console.error(err)
+      // console.error(err)
     }).on("data", (chunk) => {
       body.push(chunk)
     }).on("end", () => {
@@ -22,9 +22,9 @@ export function exit(port: number, host: string, callback: (success: boolean)=>v
   }).end()
 }
 
-export function start(port: number, host: string, callback: (turbo: TurboCrawler)=>void) {
+export function start(port: number, host: string, callback: (turbo: TurboCrawler) => void) {
   const turboCrawler = new TurboCrawler()
-  turboCrawler.start(() => {
-    if (callback) process.nextTick( () => callback(turboCrawler) )
+  turboCrawler.listen(() => {
+    if (callback) { process.nextTick( () => callback(turboCrawler) ) }
   })
 }
