@@ -42,11 +42,7 @@ if (url) {
     `))
     })
   } else if (command === "shutdown") {
-    exit(PORT, HOST, (success) => {
-      log(success ?
-        chalk.greenBright("Turbo Crawl has exited")
-        : chalk.redBright("Turbo Crawl failed to exit."))
-    })
+    exit(PORT, HOST)
   } else if (command === "list") {
     list(PORT, HOST, (crawlerstrings) => {
       log(`

@@ -21,11 +21,17 @@ export function resumeall(port: number, host: string, callback: (success: boolea
   post(port, host, "/resumeall", callback)
 }
 
-export function exit(port: number, host: string, callback: (success: boolean, err?: Error) => void) {
-  post(port, host, "/exit", callback)
+export function exit(port: number, host: string) {
+  const req = request({
+    headers: {"content-type": "application/json"},
+    host,
+    path: "/exit",
+    port,
+  })
+  req.end()
 }
 
-function post(port: number, host: string, path: string, callback: (success: boolean, err?: Error) => void) {
+function post(port: number, host: string, path: string, callback?: (success: boolean, err?: Error) => void) {
   const req = request({
     headers: {"content-type": "application/json"},
     host,
@@ -40,10 +46,12 @@ function post(port: number, host: string, path: string, callback: (success: bool
       body.push(chunk)
     }).on("end", () => {
       body = Buffer.concat(body).toString()
-      if (res.statusCode! >= 200 && res.statusCode! <= 299) {
-        process.nextTick(() => callback(true))
-      } else {
-        process.nextTick(() => callback(false, new Error("HTTP Error" + res.statusCode)))
+      if (callback) {
+        if (res.statusCode! >= 200 && res.statusCode! <= 299) {
+          process.nextTick(() => callback(true))
+        } else {
+          process.nextTick(() => callback(false, new Error("HTTP Error" + res.statusCode)))
+        }
       }
     })
   })

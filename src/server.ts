@@ -95,6 +95,10 @@ export default class Server {
             response.statusCode = 400
             response.end()
           }
+        } else if (urlcopy === "/exit") {
+          this.close()
+          response.statusCode = 200
+          response.end()
         }
       }
       if (method === "POST") {
