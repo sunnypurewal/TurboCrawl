@@ -37,7 +37,7 @@ export default function(callback: (count: number) => void) {
       const path = `./.turbocrawl/default/countries/${countryname}`
       try {
         accessSync(path)
-        console.log("Skipping", countryname)
+        // console.log("Skipping", countryname)
         return
       // tslint:disable-next-line: no-empty
       } catch (err) {
@@ -49,7 +49,7 @@ export default function(callback: (count: number) => void) {
         const dom = new JSDOM(html, {url: `${ORIGIN}${href}`})
         const document = dom.window.document
         const newsWebsites = document.querySelectorAll("div.mw-content-ltr * ul > li")
-        console.log(newsWebsites.length, countryname, "websites")
+        // console.log(newsWebsites.length, countryname, "websites")
         for (const website of newsWebsites) {
           const link = website.querySelectorAll("a")
           if (!link[0]) { continue }
