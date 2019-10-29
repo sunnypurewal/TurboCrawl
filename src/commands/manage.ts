@@ -6,17 +6,23 @@ export function pause(port: number, host: string, urls: URL[], callback: (succes
 export function pauseall(port: number, host: string, callback: (success: boolean, err?: Error) => void) {
   post(port, host, "/pauseall", callback)
 }
+
 export function end(port: number, host: string, urls: URL[], callback: (success: boolean, err?: Error) => void) {
   posturls(port, host, "/end", urls, callback)
 }
 export function endall(port: number, host: string, callback: (success: boolean, err?: Error) => void) {
   post(port, host, "/endall", callback)
 }
+
 export function resume(port: number, host: string, urls: URL[], callback: (success: boolean, err?: Error) => void) {
   posturls(port, host, "/resume", urls, callback)
 }
 export function resumeall(port: number, host: string, callback: (success: boolean, err?: Error) => void) {
   post(port, host, "/resumeall", callback)
+}
+
+export function exit(port: number, host: string, callback: (success: boolean, err?: Error) => void) {
+  post(port, host, "/exit", callback)
 }
 
 function post(port: number, host: string, path: string, callback: (success: boolean, err?: Error) => void) {

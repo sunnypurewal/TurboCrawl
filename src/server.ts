@@ -1,5 +1,5 @@
 import chalk from "chalk"
-import { accessSync, mkdirSync } from "fs"
+import { access, mkdir } from "fs"
 import { str2url } from "hittp"
 import { createServer, IncomingMessage, ServerResponse } from "http"
 import { Socket } from "net"
@@ -33,6 +33,12 @@ export default class Server {
     this.Port = port
     this.Host = host
     this.crawlerFactory = crawlerFactory
+    access("./.turbocrawl", (err) => {
+      if (err) {
+        // tslint:disable-next-line: no-empty
+        mkdir("./.turbocrawl/crawled", {recursive: true}, () => {})
+      }
+    })
   }
 
   public close() {
@@ -45,12 +51,6 @@ export default class Server {
   }
 
   public listen(callback: () => void) {
-    const path = "./.turbocrawl/crawled"
-    try {
-      accessSync(path)
-    } catch (err) {
-      mkdirSync(path, {recursive: true})
-    }
     this.server.on("request", this.onrequest.bind(this))
     this.server.on("close", this.onclose)
     this.server.on("connect", this.onconnect)

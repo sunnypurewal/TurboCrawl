@@ -40,7 +40,8 @@ export function random(port: number, host: string, callback: (url?: URL) => void
   }
 }
 
-export default function crawl(port: number, host: string, urls: URL[], callback?: (success: boolean) => void) {
+export default function crawl(port: number, host: string,
+                              urls: URL[], callback?: (success: boolean, err?: Error) => void) {
   console.log("Bulk crawling", urls.length, "domains")
   const req = request({
     headers: {"content-type": "application/json"},
