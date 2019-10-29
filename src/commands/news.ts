@@ -1,5 +1,6 @@
 import { accessSync, mkdirSync, readdirSync } from "fs"
-import knuth from "knuth-shuffle"
+// tslint:disable-next-line: no-var-requires
+const knuth = require("knuth-shuffle")
 import crawl from "./crawl"
 import { gencountries } from "./generate"
 import { domainsFromFile } from "./helpers"
