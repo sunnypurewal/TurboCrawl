@@ -3,6 +3,8 @@
   "version": "0.2.6",
   "description": "The simple and fast crawling framework. So you can focus on scraping.",
   "bin": "build/cli.js",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
   "files": [
     "build"
   ],
