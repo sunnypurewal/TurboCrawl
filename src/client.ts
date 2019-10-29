@@ -1,8 +1,4 @@
-
-import crawl, { random } from "./commands/crawl"
-import { list } from "./commands/get"
-import { end, endall, pause, pauseall, resume, resumeall } from "./commands/manage"
-import crawlNational from "./commands/news"
+import commands from "./commands"
 
 export default class Client {
   private port: number
@@ -14,38 +10,46 @@ export default class Client {
   }
 
   public crawl(domains: URL[]) {
-    crawl(this.port, this.host, domains)
+    commands.crawl(this.port, this.host, domains)
   }
 
   public random(callback: (url?: URL) => void) {
-    random(this.port, this.host, callback)
+    commands.random(this.port, this.host, callback)
   }
 
   public crawlNationalNews(country: string) {
-    crawlNational(this.port, this.host, country)
+    commands.crawlNational(this.port, this.host, country)
   }
 
   public listCrawlers(callback: (crawlers: any) => void) {
-    list(this.port, this.host, callback)
+    commands.list(this.port, this.host, callback)
+  }
+
+  public generate(name: string, callback: (count: number) => void) {
+    if (name === "reddit") {
+      commands.genreddit(callback)
+    } else if (name === "countries") {
+      commands.gencountries(callback)
+    }
   }
 
   public end(urls: URL[], callback: (success: boolean) => void) {
-    end(this.port, this.host, urls, callback)
+    commands.end(this.port, this.host, urls, callback)
   }
   public pause(urls: URL[], callback: (success: boolean, err?: Error) => void) {
-    pause(this.port, this.host, urls, callback)
+    commands.pause(this.port, this.host, urls, callback)
   }
   public resume(urls: URL[], callback: (success: boolean, err?: Error) => void) {
-    resume(this.port, this.host, urls, callback)
+    commands.resume(this.port, this.host, urls, callback)
   }
 
   public endall(callback: (success: boolean, err?: Error) => void) {
-    endall(this.port, this.host, callback)
+    commands.endall(this.port, this.host, callback)
   }
   public pauseall(callback: (success: boolean, err?: Error) => void) {
-    pauseall(this.port, this.host, callback)
+    commands.pauseall(this.port, this.host, callback)
   }
   public resumeall(callback: (success: boolean, err?: Error) => void) {
-    resumeall(this.port, this.host, callback)
+    commands.resumeall(this.port, this.host, callback)
   }
 }

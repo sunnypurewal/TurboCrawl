@@ -1,8 +1,7 @@
 {
   "name": "turbocrawl",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "description": "The simple and fast crawling framework. So you can focus on scraping.",
-  "bin": "build/cli.js",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "files": [
@@ -30,7 +29,6 @@
   "homepage": "https://github.com/sunnypurewal/TurboCrawl#readme",
   "dependencies": {
     "chalk": "^2.4.2",
-    "express": "^4.17.1",
     "getsitemap": "^0.7.14",
     "hittp": "^0.5.6",
     "jsdom": "^15.2.0",
@@ -39,7 +37,6 @@
   "devDependencies": {
     "@microsoft/tsdoc": "^0.12.14",
     "@types/chalk": "^2.2.0",
-    "@types/express": "^4.17.1",
     "@types/jsdom": "^12.2.4",
     "@types/node": "^12.11.7",
     "@types/typescript": "^2.0.0",
