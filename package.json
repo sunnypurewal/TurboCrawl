@@ -2,9 +2,6 @@
   "name": "turbocrawl",
   "version": "0.2.5",
   "description": "The simple and fast crawling framework. So you can focus on scraping.",
-  "bin": {
-    "tcrawl": "build/cli.js"
-  },
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "files": [
@@ -49,7 +46,6 @@
     "knuth-shuffle": "^1.0.8",
     "tslint": "^5.20.0",
     "typedoc": "^0.15.0",
-    "typedoc-plugin-external-module-name": "^2.1.0",
     "typescript": "^3.6.4"
   }
 }
