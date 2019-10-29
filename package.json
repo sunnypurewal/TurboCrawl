@@ -1,6 +1,6 @@
 {
   "name": "turbocrawl",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "The simple and fast crawling framework. So you can focus on scraping.",
   "bin": "build/cli.js",
   "main": "build/index.js",
@@ -33,6 +33,7 @@
     "express": "^4.17.1",
     "getsitemap": "^0.7.14",
     "hittp": "^0.5.6",
+    "jsdom": "^15.2.0",
     "uuid": "^3.3.3"
   },
   "devDependencies": {
@@ -43,7 +44,6 @@
     "@types/node": "^12.11.7",
     "@types/typescript": "^2.0.0",
     "@types/uuid": "^3.4.5",
-    "jsdom": "^15.2.0",
     "knuth-shuffle": "^1.0.8",
     "tslint": "^5.20.0",
     "typedoc": "^0.15.0",
