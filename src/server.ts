@@ -2,15 +2,19 @@ import chalk from "chalk"
 import { accessSync, mkdirSync } from "fs"
 import { str2url } from "hittp"
 import { createServer, IncomingMessage, ServerResponse } from "http"
-import log4js from "log4js"
 import { Socket } from "net"
-import {ICrawler} from "./crawlers"
+import { ICrawler } from "./core/crawlers"
+import DomainCrawlerFactory, {ICrawlerFactory} from "./core/factories"
 import { HOST, PORT } from "./env"
-import DomainCrawlerFactory, {ICrawlerFactory} from "./factories"
 
-const logger = log4js.getLogger()
-logger.level = "debug"
-const log = logger.debug
+const log = console.log
+
+export class Response {
+  public success: boolean
+  constructor(success: boolean) {
+    this.success = success
+  }
+}
 
 export default class Server {
   private crawlers: ICrawler[] = []

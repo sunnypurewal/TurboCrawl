@@ -1,18 +1,18 @@
 import { accessSync, mkdirSync, readdirSync } from "fs"
 import knuth from "knuth-shuffle"
-import { bulkCrawl } from "./crawl"
+import crawl from "./crawl"
 import { gencountries } from "./generate"
 import { domainsFromFile } from "./helpers"
 
 const shuffle = knuth.knuthShuffle
 
-function _country(port: number, host: string, path: string, country: string, callback?: () => void) {
+function _get(port: number, host: string, path: string, country: string, callback?: (success: boolean) => void) {
   const domains = domainsFromFile(`${path}/${country}`)
   shuffle(domains)
-  bulkCrawl(port, host, domains)
+  crawl(port, host, domains, callback)
 }
 
-export function country(port: number, host: string, country: string, callback?: () => void) {
+export default function crawlNational(port: number, host: string, country: string, callback?: () => void) {
   const path = "./.turbocrawl/default/countries"
   try {
     accessSync(path)
@@ -25,18 +25,18 @@ export function country(port: number, host: string, country: string, callback?: 
     accessSync(countriesjson)
   } catch (err) {
     gencountries((count) => {
-      _country(port, host, path, country, callback)
+      _get(port, host, path, country, callback)
     })
     return
   }
   const filenames = readdirSync(path).filter((d) => {
-    return d !== undefined && d !== null && d != path
+    return d !== undefined && d !== null && d !== path
   })
   if (filenames.length === 0) {
-    gencountries((count) => {
-      _country(port, host, path, country, callback)
+    gencountries((_) => {
+      _get(port, host, path, country, callback)
     })
   } else {
-    _country(port, host, path, country, callback)
+    _get(port, host, path, country, callback)
   }
 }

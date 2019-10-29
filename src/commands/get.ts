@@ -1,9 +1,10 @@
 import { request } from "http"
-export function list(port: number, host: string, callback: (crawlerstrings: string[]) => void ) {
+
+export function list(port: number, host: string, callback: (crawlers: any) => void ) {
   request({
     host,
+    path: "/list",
     port,
-    path: "/list"
   }, (res) => {
     let body: any = []
     res.on("error", (err) => {

@@ -1,16 +1,16 @@
-import { domainsFromFile } from "./helpers"
 import { accessSync, mkdirSync, readdirSync } from "fs"
 import { request } from "http"
 import { genreddit } from "./generate"
+import { domainsFromFile } from "./helpers"
 
 function _random(port: number, host: string, path: string, filenames: string[], callback: (url?: URL) => void) {
-  let random = Math.floor(Math.random() * filenames.length)
-  let filename = filenames[random]
-  let domains = domainsFromFile(`${path}/${filename}`)
+  const random = Math.floor(Math.random() * filenames.length)
+  const filename = filenames[random]
+  const domains = domainsFromFile(`${path}/${filename}`)
   if (domains && domains.length > 0) {
-    let random = Math.floor(Math.random() * domains.length)
-    let domain = new URL(domains[random].href)
-    crawl(port, host, domain, (success) => {
+    const random = Math.floor(Math.random() * domains.length)
+    const domain = new URL(domains[random].href)
+    crawl(port, host, [domain], (success) => {
       callback(success ? domain : undefined)
     })
   } else {
@@ -19,19 +19,19 @@ function _random(port: number, host: string, path: string, filenames: string[], 
 }
 
 export function random(port: number, host: string, callback: (url?: URL) => void) {
-  let path = "./.turbocrawl/default/domains"
+  const path = "./.turbocrawl/default/domains"
   try {
     accessSync(path)
   } catch (err) {
     mkdirSync(path, {recursive: true})
   }
-  let filenames = readdirSync(path).filter((d) => {
-    return d !== undefined && d !== null && d != path
+  const filenames = readdirSync(path).filter((d) => {
+    return d !== undefined && d !== null && d !== path
   })
   if (filenames.length === 0) {
-    genreddit((count) => {
-      let filenames = readdirSync(path).filter((d) => {
-        return d !== undefined && d !== null && d != path
+    genreddit((_) => {
+      const filenames = readdirSync(path).filter((d) => {
+        return d !== undefined && d !== null && d !== path
       })
       _random(port, host, path, filenames, callback)
     })
@@ -40,13 +40,13 @@ export function random(port: number, host: string, callback: (url?: URL) => void
   }
 }
 
-export function bulkCrawl(port: number, host: string, urls: URL[], callback?: (success: boolean, url: URL)=>void) {
+export default function crawl(port: number, host: string, urls: URL[], callback?: (success: boolean) => void) {
   console.log("Bulk crawling", urls.length, "domains")
   const req = request({
+    headers: {"content-type": "application/json"},
     host,
-    port,
     method: "POST",
-    headers: {"content-type": "application/json"}
+    port,
   }, (res) => {
     let body: any = []
     res.on("error", (err) => {
@@ -63,74 +63,40 @@ export function bulkCrawl(port: number, host: string, urls: URL[], callback?: (s
           console.error(err)
         }
       }
+      if (callback) { callback(res.statusCode! >= 200 && res.statusCode! <= 299) }
     })
   })
-  req.write(JSON.stringify(urls.map(u => u.href)))
+  req.write(JSON.stringify(urls.map((u) => u.href)))
   req.end()
 }
-
-export function crawl(port: number, host: string, url: URL, callback: (success: boolean, errCode?: number) => void) {
-  const req = request({
-    host,
-    port,
-    method: "POST",
-    headers: {"content-type": "application/json"}
-  }, (res) => {
-    if (res.statusCode! >= 200 && res.statusCode! <= 299) {
-      let body: any = []
-      res.on("error", (err) => {
-        console.error(err)
-      }).on("data", (chunk) => {
-        body.push(chunk)
-      }).on("end", () => {
-        body = Buffer.concat(body).toString()
-        const contentType = res.headers["content-type"] || ""
-        if (contentType === "application/json") {
-          try {
-            body = JSON.parse(body)
-            process.nextTick(() => {callback(body.success)})
-          } catch (err) {
-            console.error(err)
-          }
-        }
-      })
-    } else {
-      process.nextTick(() => {
-        callback(false, res.statusCode)
-      })
-    }
-  })
-  req.write(JSON.stringify({url: url.href}))
-  req.end()
-}
-
 
 export function pause(port: number, host: string, url: URL, callback: (success: boolean, err?: Error) => void) {
-  post(port, host, "/pause", url, callback)
+  posturl(port, host, "/pause", url, callback)
 }
 export function pauseall(port: number, host: string, url: URL, callback: (success: boolean, err?: Error) => void) {
-  post(port, host, "/pauseall", url, callback)
+  posturl(port, host, "/pauseall", url, callback)
 }
 export function end(port: number, host: string, url: URL, callback: (success: boolean, err?: Error) => void) {
-  post(port, host, "/end", url, callback)
+  posturl(port, host, "/end", url, callback)
 }
 export function endall(port: number, host: string, callback: (success: boolean, err?: Error) => void) {
-  post(port, host, "/endall", new URL("http://www.turobcrawl.com/"), callback)
+  posturl(port, host, "/endall", new URL("http://www.turbocrawl.com/"), callback)
 }
 export function resume(port: number, host: string, url: URL, callback: (success: boolean, err?: Error) => void) {
-  post(port, host, "/resume", url, callback)
+  posturl(port, host, "/resume", url, callback)
 }
 export function resumeall(port: number, host: string, url: URL, callback: (success: boolean, err?: Error) => void) {
-  post(port, host, "/resumeall", url, callback)
+  posturl(port, host, "/resumeall", url, callback)
 }
 
-function post(port: number, host: string, path: string, url: URL, callback: (success: boolean, err?: Error) => void) {
+function posturl(port: number, host: string, path: string,
+                 url: URL, callback: (success: boolean, err?: Error) => void) {
   const req = request({
+    headers: {"content-type": "application/json"},
     host,
-    port,
-    path,
     method: "POST",
-    headers: {"content-type": "application/json"}
+    path,
+    port,
   }, (res) => {
     let body: any = []
     res.on("error", (err) => {

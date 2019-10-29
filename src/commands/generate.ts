@@ -1,9 +1,9 @@
-import GenerateReddit from "../scripts/redditpage"
 import GenerateCountries from "../scripts/country"
+import GenerateReddit from "../scripts/redditpage"
 
 /**
  * Scrapes /r/politics for a list of domains that can be used for crawling
- * @param callback 
+ * @param callback
  */
 export function genreddit(callback: (count: number) => void) {
   GenerateReddit(callback)

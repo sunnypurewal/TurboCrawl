@@ -35,7 +35,6 @@
     "express": "^4.17.1",
     "getsitemap": "^0.7.14",
     "hittp": "^0.5.6",
-    "log4js": "^5.3.0",
     "uuid": "^3.3.3"
   },
   "devDependencies": {

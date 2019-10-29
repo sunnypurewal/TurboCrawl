@@ -7,7 +7,9 @@
     "rules": {
         "semicolon": false,
         "no-shadowed-variable": false,
-        "max-classes-per-file": false
+        "max-classes-per-file": false,
+        "no-console": false,
+        "interface-name": false
     },
     "rulesDirectory": []
 }

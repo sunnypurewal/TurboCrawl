@@ -1,3 +1,7 @@
-import TurboCrawl from "./server"
+import Client from "./client"
+import Server from "./server"
 
-export default TurboCrawl
+export = {
+  Client,
+  Server,
+}
