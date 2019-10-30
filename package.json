@@ -30,7 +30,7 @@
   "dependencies": {
     "chalk": "^2.4.2",
     "getsitemap": "^0.7.14",
-    "hittp": "^0.5.6",
+    "hittp": "^0.5.8",
     "jsdom": "^15.2.0",
     "uuid": "^3.3.3"
   },
@@ -38,7 +38,7 @@
     "@microsoft/tsdoc": "^0.12.14",
     "@types/chalk": "^2.2.0",
     "@types/jsdom": "^12.2.4",
-    "@types/node": "^12.11.7",
+    "@types/node": "^12.12.0",
     "@types/typescript": "^2.0.0",
     "@types/uuid": "^3.4.5",
     "knuth-shuffle": "^1.0.8",

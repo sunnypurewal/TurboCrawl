@@ -2,9 +2,10 @@ import { accessSync, mkdirSync, writeFileSync } from "fs"
 import hittp from "hittp"
 import { JSDOM } from "jsdom"
 
-export default function(callback: (count: number) => void) {
+export default function(callback: (count: number, filename: string) => void) {
+  const path = "./.turbocrawl/default/domains"
   const url = hittp.str2url("https://www.reddit.com/r/politics/wiki/whitelist")
-  hittp.get(url).then((html: string) => {
+  hittp.get(url, {cache: false}).then((html: string) => {
     const dom = new JSDOM(html, {url: url.href})
     const document = dom.window.document
     const websites = document.querySelectorAll("table>tbody>tr")
@@ -17,11 +18,12 @@ export default function(callback: (count: number) => void) {
       if (website) { domains.push(website.origin) }
     }
     try {
-      accessSync("./.turbocrawl/default/domains")
+      accessSync(path)
     } catch (err) {
-      mkdirSync("./.turbocrawl/default/domains", {recursive: true})
+      mkdirSync(path, {recursive: true})
     }
-    writeFileSync("./.turbocrawl/default/domains/reddit_r_politics_whitelist", domains.join("\n"))
-    callback(domains.length)
+    const filename = `${path}/reddit_r_politics_whitelist`
+    writeFileSync(filename, domains.join("\n"))
+    callback(domains.length, filename)
   })
 }

@@ -5,7 +5,7 @@ import GenerateReddit from "../scripts/redditpage"
  * Scrapes /r/politics for a list of domains that can be used for crawling
  * @param callback
  */
-export function genreddit(callback: (count: number) => void) {
+export function genreddit(callback: (count: number, filename: string) => void) {
   GenerateReddit(callback)
 }
 

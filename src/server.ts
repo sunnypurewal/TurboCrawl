@@ -99,6 +99,9 @@ export default class Server {
           this.close()
           response.statusCode = 200
           response.end()
+        } else if (urlcopy === "/ping") {
+          response.statusCode = 200
+          response.end()
         }
       }
       if (method === "POST") {

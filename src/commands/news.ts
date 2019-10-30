@@ -1,11 +1,16 @@
 import { accessSync, mkdirSync, readdirSync } from "fs"
-// tslint:disable-next-line: no-var-requires
-const knuth = require("knuth-shuffle")
 import crawl from "./crawl"
 import { gencountries } from "./generate"
 import { domainsFromFile } from "./helpers"
 
-const shuffle = knuth.knuthShuffle
+function shuffle(array: any[]) {
+  for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const temp = array[i];
+      array[i] = array[j];
+      array[j] = temp;
+  }
+}
 
 function _get(port: number, host: string, path: string, country: string, callback?: (success: boolean) => void) {
   const domains = domainsFromFile(`${path}/${country}`)
