@@ -25,31 +25,27 @@ export default class Client {
     commands.list(this.port, this.host, callback)
   }
 
-  public generate(name: string, callback: (count: number) => void) {
-    if (name === "reddit") {
-      commands.genreddit(callback)
-    } else if (name === "countries") {
-      commands.gencountries(callback)
-    }
+  public generate(name: string, callback: (body: string|null, err?: Error) => void) {
+    commands.generate(this.port, this.host, name, callback)
   }
 
-  public end(urls: URL[], callback: (success: boolean) => void) {
+  public end(urls: URL[], callback: (body: string|null, err?: Error) => void) {
     commands.end(this.port, this.host, urls, callback)
   }
-  public pause(urls: URL[], callback: (success: boolean, err?: Error) => void) {
+  public pause(urls: URL[], callback: (body: string|null, err?: Error) => void) {
     commands.pause(this.port, this.host, urls, callback)
   }
-  public resume(urls: URL[], callback: (success: boolean, err?: Error) => void) {
+  public resume(urls: URL[], callback: (body: string|null, err?: Error) => void) {
     commands.resume(this.port, this.host, urls, callback)
   }
 
-  public endall(callback: (success: boolean, err?: Error) => void) {
+  public endall(callback: (body: string|null, err?: Error) => void) {
     commands.endall(this.port, this.host, callback)
   }
-  public pauseall(callback: (success: boolean, err?: Error) => void) {
+  public pauseall(callback: (body: string|null, err?: Error) => void) {
     commands.pauseall(this.port, this.host, callback)
   }
-  public resumeall(callback: (success: boolean, err?: Error) => void) {
+  public resumeall(callback: (body: string|null, err?: Error) => void) {
     commands.resumeall(this.port, this.host, callback)
   }
 }

@@ -14,8 +14,9 @@ export interface IURLHandler {
 
 export default class HTTPURLHandler implements IURLHandler {
 
+  private hittpoptions: any = { delay_ms: 3000, cachePath: "./.cache" }
   public stream(url: URL, callback: (url: URL, htmlstream?: Readable, err?: Error) => void) {
-    hittp.stream(url).then((htmlstream: Readable) => {
+    hittp.stream(url, this.hittpoptions).then((htmlstream: Readable) => {
       // process.nextTick(() => {
         callback(url, htmlstream)
       // })

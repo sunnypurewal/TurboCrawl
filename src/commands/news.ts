@@ -1,7 +1,7 @@
 import { accessSync, mkdirSync, readdirSync } from "fs"
 import crawl from "./crawl"
-import { gencountries } from "./generate"
 import { domainsFromFile } from "./helpers"
+import { generate } from "./manage"
 
 function shuffle(array: any[]) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -30,18 +30,18 @@ export default function crawlNational(port: number, host: string, country: strin
   try {
     accessSync(countriesjson)
   } catch (err) {
-    gencountries((count) => {
+    generate(port, host, "wikipedia", ((_, __) => {
       _get(port, host, path, country, callback)
-    })
+    }))
     return
   }
   const filenames = readdirSync(path).filter((d) => {
     return d !== undefined && d !== null && d !== path
   })
   if (filenames.length === 0) {
-    gencountries((_) => {
+    generate(port, host, "wikipedia", ((_, __) => {
       _get(port, host, path, country, callback)
-    })
+    }))
   } else {
     _get(port, host, path, country, callback)
   }

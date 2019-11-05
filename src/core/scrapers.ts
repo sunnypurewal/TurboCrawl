@@ -66,6 +66,7 @@ class MetadataScrapeStream extends Transform {
     }
     try {
       this.push(JSON.stringify(metadata) + "\n")
+    // tslint:disable-next-line: no-empty
     } catch (err) {}
     callback()
   }

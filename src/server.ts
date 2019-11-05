@@ -6,6 +6,8 @@ import { Socket } from "net"
 import { ICrawler } from "./core/crawlers"
 import DomainCrawlerFactory, {ICrawlerFactory} from "./core/factories"
 import { HOST, PORT } from "./env"
+import generateReddit from "./scripts/reddit"
+import generateWikipedia from "./scripts/wikipedia"
 
 const log = console.log
 
@@ -64,7 +66,6 @@ export default class Server {
     response.on("error", (err) => {
       log(err)
     })
-
     const { headers, method, url } = request;
     let body: any = [];
     const urlcopy = url ? url.slice() : ""
@@ -221,6 +222,26 @@ export default class Server {
           } else {
             response.statusCode = 400
             response.end()
+          }
+        } else if (urlcopy === "/generate") {
+          const name = body.name
+          if (name === "reddit") {
+            generateReddit((count, filename, err) => {
+              if (err) {
+                response.statusCode = 400
+                response.end()
+              } else {
+                response.statusCode = 200
+                response.write(JSON.stringify({count, filename}))
+                response.end()
+              }
+            })
+          } else if (name === "wikipedia") {
+            generateWikipedia((count) => {
+              response.statusCode = 200
+              response.write(JSON.stringify({count}))
+              response.end()
+            })
           }
         }
       }

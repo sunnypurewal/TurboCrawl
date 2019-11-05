@@ -19,6 +19,7 @@ export interface ICrawler extends EventEmitter {
   resume(): void
   exit(): void
 }
+
 /**
  * The DomainCrawler class is responsible for crawling a single website.
  * It takes a root domain as input (e.g. "reuters.com")
@@ -41,7 +42,6 @@ export default class DomainCrawler extends EventEmitter implements ICrawler {
               detector?: ILinkDetector,
               urlHandler?: IURLHandler) {
       super()
-      hittp.configure({cachePath: "./.cache"})
       this.domain = domain
       this.detector = detector || new SitemapLinkDetector(this.domain, {startDate: new Date(Date.now() - 86400)})
       this.consumer = consumer

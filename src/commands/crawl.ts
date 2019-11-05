@@ -1,7 +1,7 @@
 import { accessSync, mkdirSync, readdirSync } from "fs"
 import { request } from "http"
-import { genreddit } from "./generate"
 import { domainsFromFile } from "./helpers"
+import { generate } from "./manage"
 
 function _random(port: number, host: string, path: string, filenames: string[], callback: (url?: URL) => void) {
   const random = Math.floor(Math.random() * filenames.length)
@@ -29,12 +29,12 @@ export function random(port: number, host: string, callback: (url?: URL) => void
     return d !== undefined && d !== null && d !== path
   })
   if (filenames.length === 0) {
-    genreddit((_) => {
+    generate(port, host, "reddit", ((body, err) => {
       const filenames = readdirSync(path).filter((d) => {
         return d !== undefined && d !== null && d !== path
       })
       _random(port, host, path, filenames, callback)
-    })
+    }))
   } else {
     _random(port, host, path, filenames, callback)
   }
