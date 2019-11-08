@@ -12,7 +12,7 @@ export default async function(callback?: (count: number) => void) {
   } catch (err) {
     mkdirSync(path, {recursive: true})
   }
-  const options = { delay_ms: 0, cachePath: "./.cache" }
+  const options = { delay_ms: 300, cachePath: "./.cache" }
   let html = await hittp.get(hittp.str2url(START_URL), options)
   const dom = new JSDOM(html, {url: START_URL})
   const document = dom.window.document
