@@ -1,6 +1,6 @@
+import { SiteMapper } from "getsitemap"
+import { str2url } from "hittp"
 import { PassThrough, Readable, Transform, TransformCallback, Writable } from "stream"
-const { SiteMapper } = require("getsitemap")
-const { str2url } = require("hittp")
 
 export interface ILinkDetector extends Readable {
   domain: URL
@@ -18,8 +18,13 @@ export default class SitemapLinkDetector extends PassThrough implements ILinkDet
     this.domain = domain
     this.options = options
     this.mapper = new SiteMapper(domain.href)
-    this.mapper.map(options.startDate).pipe(this).pipe(transformer)
+    const sitemapstream = this.mapper.map(options.startDate, { cachePath: "./.turbocrawl/cache" })
+    sitemapstream.pipe(this).pipe(transformer)
+    sitemapstream.on("end", () => {
+      console.log("sitemapstream ended")
+    })
   }
+
   public _destroy(error: Error | null, callback: (error: Error | null) => void) {
     this.mapper.cancel()
     callback(error)
@@ -37,7 +42,9 @@ class GetSitemapTransformStream extends Transform {
     if (typeof(c) !== "string") { c = c.toString() }
     c = c.split("||")
     const url = str2url(c[0])
-    if (url instanceof URL) { this.push(url.href) }
+    if (url instanceof URL) {
+      this.push(url.href)
+    }
     callback()
   }
 }

@@ -43,7 +43,8 @@ export default class DomainCrawler extends EventEmitter implements ICrawler {
               urlHandler?: IURLHandler) {
       super()
       this.domain = domain
-      this.detector = detector || new SitemapLinkDetector(this.domain, {startDate: new Date(Date.now() - 86400)})
+      const startDate = Date.parse("2019-11-07")
+      this.detector = detector || new SitemapLinkDetector(this.domain, {startDate})
       this.consumer = consumer
       this.urlHandler = urlHandler || new HTTPURLHandler()
       this.scraper = scraper || new MetadataScraper()
@@ -61,6 +62,11 @@ export default class DomainCrawler extends EventEmitter implements ICrawler {
         }
       })
     })
+    this.detector.on("end", () => {
+      console.log("Detector ended")
+      this.consumer.destroy()
+      this.emit("exit")
+    })
   }
 
   public pause() {
@@ -74,8 +80,8 @@ export default class DomainCrawler extends EventEmitter implements ICrawler {
   }
 
   public exit() {
-    this.detector.destroy()
     this.consumer.destroy()
+    this.detector.destroy()
     this.emit("exit")
   }
 }

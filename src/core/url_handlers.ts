@@ -13,18 +13,21 @@ export interface IURLHandler {
 }
 
 export default class HTTPURLHandler implements IURLHandler {
+  private hittpoptions: any = { delay_ms: 3000, cachePath: "./.turbocrawl/cache" }
 
-  private hittpoptions: any = { delay_ms: 3000, cachePath: "./.cache" }
+  constructor() {
+    hittp.setLogLevel("debug")
+  }
   public stream(url: URL, callback: (url: URL, htmlstream?: Readable, err?: Error) => void) {
     hittp.stream(url, this.hittpoptions).then((htmlstream: Readable) => {
-      // process.nextTick(() => {
+      process.nextTick(() => {
         callback(url, htmlstream)
-      // })
+      })
     }).catch((err: Error) => {
       // console.error(err)
-      // process.nextTick(() => {
+      process.nextTick(() => {
         callback(url, undefined, err)
-      // })
+      })
     })
   }
 

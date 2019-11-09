@@ -13,7 +13,7 @@ export default class Client {
     commands.crawl(this.port, this.host, domains)
   }
 
-  public random(callback: (url?: URL) => void) {
+  public random(callback: (statusCode: number, url?: URL) => void) {
     commands.random(this.port, this.host, callback)
   }
 

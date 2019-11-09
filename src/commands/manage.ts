@@ -47,7 +47,7 @@ function post(port: number, host: string, path: string, jsonbody: string|null, c
   }, (res) => {
     let body: any = []
     res.on("error", (err) => {
-      console.error(err)
+      // console.error(err)
     }).on("data", (chunk) => {
       body.push(chunk)
     }).on("end", () => {

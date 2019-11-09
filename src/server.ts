@@ -1,8 +1,9 @@
 import chalk from "chalk"
-import { access, mkdir } from "fs"
+import { access, mkdir, readdir } from "fs"
 import { str2url } from "hittp"
 import { createServer, IncomingMessage, ServerResponse } from "http"
 import { Socket } from "net"
+import { domainsFromFile } from "./commands/helpers"
 import { ICrawler } from "./core/crawlers"
 import DomainCrawlerFactory, {ICrawlerFactory} from "./core/factories"
 import { HOST, PORT } from "./env"
@@ -35,11 +36,13 @@ export default class Server {
     this.Port = port
     this.Host = host
     this.crawlerFactory = crawlerFactory
-    access("./.turbocrawl", (err) => {
-      if (err) {
-        // tslint:disable-next-line: no-empty
-        mkdir("./.turbocrawl/crawled", {recursive: true}, () => {})
-      }
+    mkdir("./.turbocrawl/crawled", {recursive: true}, () => {
+      mkdir("./.turbocrawl/default", {recursive: true}, () => {
+        mkdir("./.turbocrawl/default/domains", {recursive: true}, () => {
+          // tslint:disable-next-line: no-empty
+          mkdir("./.turbocrawl/default/countries", {recursive: true}, () => {})
+        })
+      })
     })
   }
 
@@ -144,6 +147,49 @@ export default class Server {
           response.statusCode = 200
           response.write(JSON.stringify({success: true}))
           response.end()
+        } else if (urlcopy === "/crawl") {
+          if (body.random) {
+            const path = "./.turbocrawl/default/domains"
+            readdir(path, (err, files) => {
+              const filenames = files.filter((d) => {
+                return d !== undefined && d !== null && d !== path
+              })
+              if (filenames.length === 0) {
+                console.log("Filenames is empty")
+                response.statusCode = 404
+                response.statusMessage = `No files were found in ${path}. Try calling /generate`
+                response.end()
+              } else {
+                const random = Math.floor(Math.random() * filenames.length)
+                const filename = filenames[random]
+                const domains = domainsFromFile(`${path}/${filename}`)
+                if (domains && domains.length > 0) {
+                  const random = Math.floor(Math.random() * domains.length)
+                  const domain = new URL(domains[random].href)
+                  const crawler = this.crawlerFactory.create(domain)
+                  this.crawlers.push(crawler)
+                  crawler.on("exit", () => {
+                    log("Crawler exited", domain.href)
+                    const index = this.crawlers.findIndex((c) => {
+                      return c.id === crawler.id
+                    })
+                    if (index !== -1) {
+                      this.crawlers.splice(index, 1)
+                    }
+                  })
+                  crawler.start()
+                  response.statusCode = 200
+                  response.write(JSON.stringify({ url: domain.href }))
+                  response.end()
+                } else {
+                  console.log("File is empty")
+                  response.statusCode = 404
+                  response.statusMessage = `File at ${path}/${filename} is empty.`
+                  response.end()
+                }
+              }
+            })
+          }
         } else if (urlcopy === "/end") {
           const ids: string[] = []
           if (body.length) {
@@ -160,8 +206,8 @@ export default class Server {
             }
           }
           for (const id of ids) {
-            const index = this.crawlers.findIndex((v) => {
-              return v.id === id
+            const index = this.crawlers.findIndex((c) => {
+              return c.id === id
             })
             if (index !== -1) {
               const crawler = this.crawlers.splice(index, 1)[0]

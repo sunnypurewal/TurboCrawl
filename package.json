@@ -29,8 +29,8 @@
   "homepage": "https://github.com/sunnypurewal/TurboCrawl#readme",
   "dependencies": {
     "chalk": "^2.4.2",
-    "getsitemap": "^0.8.0",
-    "hittp": "^0.6.2",
+    "getsitemap": "^0.9.0",
+    "hittp": "^0.7.1",
     "jsdom": "^15.2.1",
     "uuid": "^3.3.3"
   },
