@@ -85,7 +85,7 @@ export default class Server {
         if (urlcopy === "/list") {
           try {
             let crawlerstrings: any = this.crawlers.map((c) => {
-              return {id: c.id}
+              return c.domain
             }) || []
             crawlerstrings = JSON.stringify({crawlerstrings})
             response.writeHead(200, {
@@ -141,6 +141,12 @@ export default class Server {
             this.crawlers.push(crawler)
             crawler.on("exit", () => {
               log("Crawler exited", url.href)
+              const index = this.crawlers.findIndex((c) => {
+                return c.id === crawler.id
+              })
+              if (index !== -1) {
+                this.crawlers.splice(index, 1)
+              }
             })
             crawler.start()
           }
@@ -185,6 +191,42 @@ export default class Server {
                   console.log("File is empty")
                   response.statusCode = 404
                   response.statusMessage = `File at ${path}/${filename} is empty.`
+                  response.end()
+                }
+              }
+            })
+          } else if (body.country) {
+            const path = `./.turbocrawl/default/countries/${body.country}`
+            access(path, (err) => {
+              if (err) {
+                console.log("Countries have not been generated yet")
+                response.statusCode = 404
+                response.statusMessage = `${path} was not found. Try calling /generate`
+                response.end()
+              } else {
+                const domains = domainsFromFile(path)
+                if (domains && domains.length > 0) {
+                  const random = Math.floor(Math.random() * domains.length)
+                  const domain = new URL(domains[random].href)
+                  const crawler = this.crawlerFactory.create(domain)
+                  this.crawlers.push(crawler)
+                  crawler.on("exit", () => {
+                    log("Crawler exited", domain.href)
+                    const index = this.crawlers.findIndex((c) => {
+                      return c.id === crawler.id
+                    })
+                    if (index !== -1) {
+                      this.crawlers.splice(index, 1)
+                    }
+                  })
+                  crawler.start()
+                  response.statusCode = 200
+                  response.write(JSON.stringify({ url: domain.href }))
+                  response.end()
+                } else {
+                  console.log("File is empty")
+                  response.statusCode = 404
+                  response.statusMessage = `File at ${path} is empty.`
                   response.end()
                 }
               }

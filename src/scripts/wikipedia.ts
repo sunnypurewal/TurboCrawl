@@ -12,6 +12,7 @@ export default async function(callback?: (count: number) => void) {
   } catch (err) {
     mkdirSync(path, {recursive: true})
   }
+  hittp.setLogLevel("debug")
   const options = { delay_ms: 300, cachePath: "./.cache" }
   let html = await hittp.get(hittp.str2url(START_URL), options)
   const dom = new JSDOM(html, {url: START_URL})
@@ -20,9 +21,11 @@ export default async function(callback?: (count: number) => void) {
   const names = []
   for (const country of countries) {
     let name: any = country.querySelectorAll("a")
-    name = name[0].textContent
-    name = name.slice(0, name.indexOf("news websites")).trim()
-    names.push(name)
+    if (name.textContent) {
+      name = name[0].textContent
+      name = name.slice(0, name.indexOf("news websites")).trim()
+      names.push(name)
+    }
   }
   try {
     writeFileSync("./.turbocrawl/default/countries.json", JSON.stringify(names))

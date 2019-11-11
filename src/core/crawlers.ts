@@ -36,6 +36,8 @@ export default class DomainCrawler extends EventEmitter implements ICrawler {
   public urlHandler: IURLHandler
   public scraper: IScraper
   public id: string
+  private linkCount: number = 0
+  private responseCount: number = 0
   constructor(domain: URL,
               consumer: ICrawlConsumer,
               scraper?: IScraper,
@@ -43,7 +45,7 @@ export default class DomainCrawler extends EventEmitter implements ICrawler {
               urlHandler?: IURLHandler) {
       super()
       this.domain = domain
-      const startDate = Date.parse("2019-11-07")
+      const startDate = Date.parse("2019-11-10")
       this.detector = detector || new SitemapLinkDetector(this.domain, {startDate})
       this.consumer = consumer
       this.urlHandler = urlHandler || new HTTPURLHandler()
@@ -60,12 +62,23 @@ export default class DomainCrawler extends EventEmitter implements ICrawler {
           const scraper = this.scraper.create()
           htmlstream.pipe(scraper).pipe(this.consumer, {end: false})
         }
+        this.responseCount += 1
+        if (this.responseCount === this.linkCount) {
+          this.consumer.destroy()
+          this.emit("exit")
+        }
       })
     })
+    /**
+     * listen for hittp emptied event
+     */
     this.detector.on("end", () => {
-      console.log("Detector ended")
-      this.consumer.destroy()
-      this.emit("exit")
+      this.linkCount = this.detector.getLinkCount()
+      console.log("Detector detected", this.linkCount, "links")
+      if (this.linkCount === 0) {
+        this.consumer.destroy()
+        this.emit("exit")
+      }
     })
   }
 

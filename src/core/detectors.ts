@@ -5,34 +5,38 @@ import { PassThrough, Readable, Transform, TransformCallback, Writable } from "s
 export interface ILinkDetector extends Readable {
   domain: URL
   options?: any
+  getLinkCount(): number
 }
 
 export default class SitemapLinkDetector extends PassThrough implements ILinkDetector {
   public domain: URL
   public options?: any
   private mapper: any
+  private transformer: GetSitemapTransformStream
   constructor(domain: URL, options?: any) {
     options = options || {}
     super(options)
-    const transformer = new GetSitemapTransformStream(options)
+    this.transformer = new GetSitemapTransformStream(options)
     this.domain = domain
     this.options = options
     this.mapper = new SiteMapper(domain.href)
     const sitemapstream = this.mapper.map(options.startDate, { cachePath: "./.turbocrawl/cache" })
-    sitemapstream.pipe(this).pipe(transformer)
-    sitemapstream.on("end", () => {
-      console.log("sitemapstream ended")
-    })
+    sitemapstream.pipe(this).pipe(this.transformer)
   }
 
   public _destroy(error: Error | null, callback: (error: Error | null) => void) {
     this.mapper.cancel()
     callback(error)
   }
+
+  public getLinkCount() {
+    return this.transformer.count
+  }
 }
 
 class GetSitemapTransformStream extends Transform {
   public startDate: Date
+  public count: number = 0
   constructor(options?: any) {
     super(options)
     this.startDate = options.startDate
@@ -43,6 +47,7 @@ class GetSitemapTransformStream extends Transform {
     c = c.split("||")
     const url = str2url(c[0])
     if (url instanceof URL) {
+      this.count += 1
       this.push(url.href)
     }
     callback()

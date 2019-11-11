@@ -1,7 +1,6 @@
-import { accessSync, mkdirSync, readdirSync } from "fs"
+import { request } from "http";
 import crawl from "./crawl"
 import { domainsFromFile } from "./helpers"
-import { generate } from "./manage"
 
 function shuffle(array: any[]) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -18,31 +17,32 @@ function _get(port: number, host: string, path: string, country: string, callbac
   crawl(port, host, domains, callback)
 }
 
-export default function crawlNational(port: number, host: string, country: string, callback?: () => void) {
-  const path = "./.turbocrawl/default/countries"
-  try {
-    accessSync(path)
-  } catch (err) {
-    mkdirSync(path, {recursive: true})
-  }
-
-  const countriesjson = "./.turbocrawl/default/countries.json"
-  try {
-    accessSync(countriesjson)
-  } catch (err) {
-    generate(port, host, "wikipedia", ((_, __) => {
-      _get(port, host, path, country, callback)
-    }))
-    return
-  }
-  const filenames = readdirSync(path).filter((d) => {
-    return d !== undefined && d !== null && d !== path
+export default function crawlNational(port: number, host: string, country: string, callback?: (statusCode: number) => void) {
+  const req = request({
+    headers: {"content-type": "application/json"},
+    host,
+    method: "POST",
+    path: "/crawl",
+    port,
+  }, (res) => {
+    let body: any = []
+    res.on("error", (err) => {
+      // console.error(err)
+    }).on("data", (chunk) => {
+      body.push(chunk)
+    }).on("end", () => {
+      body = Buffer.concat(body).toString()
+      const contentType = res.headers["content-type"] || ""
+      if (contentType === "application/json") {
+        try {
+          body = JSON.parse(body)
+        } catch (err) {
+          // console.error(err)
+        }
+      }
+      if (callback) { callback(res.statusCode!) }
+    })
   })
-  if (filenames.length === 0) {
-    generate(port, host, "wikipedia", ((_, __) => {
-      _get(port, host, path, country, callback)
-    }))
-  } else {
-    _get(port, host, path, country, callback)
-  }
+  req.write(JSON.stringify({ country }))
+  req.end()
 }
