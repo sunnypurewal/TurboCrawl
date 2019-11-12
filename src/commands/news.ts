@@ -1,23 +1,7 @@
 import { request } from "http";
-import crawl from "./crawl"
-import { domainsFromFile } from "./helpers"
 
-function shuffle(array: any[]) {
-  for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const temp = array[i];
-      array[i] = array[j];
-      array[j] = temp;
-  }
-}
-
-function _get(port: number, host: string, path: string, country: string, callback?: (success: boolean) => void) {
-  const domains = domainsFromFile(`${path}/${country}`)
-  shuffle(domains)
-  crawl(port, host, domains, callback)
-}
-
-export default function crawlNational(port: number, host: string, country: string, callback?: (statusCode: number) => void) {
+// tslint:disable-next-line: max-line-length
+export default function crawlNational(port: number, host: string, country: string, callback?: (statusCode: number, response: any) => void) {
   const req = request({
     headers: {"content-type": "application/json"},
     host,
@@ -40,7 +24,7 @@ export default function crawlNational(port: number, host: string, country: strin
           // console.error(err)
         }
       }
-      if (callback) { callback(res.statusCode!) }
+      if (callback) { callback(res.statusCode!, body) }
     })
   })
   req.write(JSON.stringify({ country }))

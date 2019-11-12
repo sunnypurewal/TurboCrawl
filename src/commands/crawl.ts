@@ -31,7 +31,8 @@ export function random(port: number, host: string, callback: (statusCode: number
 }
 
 export default function crawl(port: number, host: string,
-                              urls: URL[], callback?: (success: boolean, err?: Error) => void) {
+                              urls: URL[],
+                              callback?: (statusCode: number, response: any) => void) {
   const req = request({
     headers: {"content-type": "application/json"},
     host,
@@ -53,7 +54,10 @@ export default function crawl(port: number, host: string,
           // console.error(err)
         }
       }
-      if (callback) { callback(res.statusCode! >= 200 && res.statusCode! <= 299) }
+      console.log(body, callback)
+      if (callback) {
+        callback(res.statusCode!, body)
+      }
     })
   })
   req.write(JSON.stringify(urls.map((u) => u.href)))

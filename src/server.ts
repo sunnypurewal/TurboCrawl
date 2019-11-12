@@ -151,7 +151,7 @@ export default class Server {
             crawler.start()
           }
           response.statusCode = 200
-          response.write(JSON.stringify({success: true}))
+          response.write(JSON.stringify({filepath: path}))
           response.end()
         } else if (urlcopy === "/crawl") {
           if (body.random) {
@@ -222,7 +222,7 @@ export default class Server {
                   })
                   crawler.start()
                   response.statusCode = 200
-                  response.write(JSON.stringify({ url: domain.href }))
+                  response.write(JSON.stringify({ url: domain.href, filepath: "./.turbocrawl/crawled" }))
                   response.end()
                 } else {
                   console.log("File is empty")
