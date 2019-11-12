@@ -45,7 +45,7 @@ export default class DomainCrawler extends EventEmitter implements ICrawler {
               urlHandler?: IURLHandler) {
       super()
       this.domain = domain
-      const startDate = Date.parse("2019-11-10")
+      const startDate = Date.now() - (60 * 60 * 24 * 2)
       this.detector = detector || new SitemapLinkDetector(this.domain, {startDate})
       this.consumer = consumer
       this.urlHandler = urlHandler || new HTTPURLHandler()

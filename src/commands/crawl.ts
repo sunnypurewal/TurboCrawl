@@ -1,10 +1,6 @@
-import { accessSync, mkdirSync, readdirSync } from "fs"
-import { str2url } from "hittp"
 import { request } from "http"
-import { domainsFromFile } from "./helpers"
-import { generate } from "./manage"
 
-export function random(port: number, host: string, callback: (statusCode: number, url?: URL) => void) {
+export function random(port: number, host: string, callback: (statusCode: number, response: any) => void) {
   const req = request({
     headers: {"content-type": "application/json"},
     host,
@@ -27,7 +23,7 @@ export function random(port: number, host: string, callback: (statusCode: number
           // console.error(err)
         }
       }
-      if (callback) { callback(res.statusCode!, str2url(body.url)) }
+      if (callback) { callback(res.statusCode!, body) }
     })
   })
   req.write(JSON.stringify({ random: true }))

@@ -173,6 +173,7 @@ export default class Server {
                   const random = Math.floor(Math.random() * domains.length)
                   const domain = new URL(domains[random].href)
                   const crawler = this.crawlerFactory.create(domain)
+                  const filepath = crawler.consumer.options.filepath
                   this.crawlers.push(crawler)
                   crawler.on("exit", () => {
                     log("Crawler exited", domain.href)
@@ -185,7 +186,7 @@ export default class Server {
                   })
                   crawler.start()
                   response.statusCode = 200
-                  response.write(JSON.stringify({ url: domain.href }))
+                  response.write(JSON.stringify({ url: domain.href, filepath }))
                   response.end()
                 } else {
                   console.log("File is empty")
