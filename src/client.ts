@@ -9,16 +9,16 @@ export default class Client {
     this.host = host
   }
 
-  public crawl(domains: URL[]) {
-    commands.crawl(this.port, this.host, domains)
+  public crawl(domains: URL[], callback?: (statusCode: number, response: any) => void) {
+    commands.crawl(this.port, this.host, domains, callback)
   }
 
-  public random(callback: (statusCode: number, url?: URL) => void) {
+  public random(callback: (statusCode: number, response: any) => void) {
     commands.random(this.port, this.host, callback)
   }
 
-  public crawlNationalNews(country: string) {
-    commands.crawlNational(this.port, this.host, country)
+  public crawlNationalNews(country: string, callback?: (statusCode: number, response: any) => void) {
+    commands.crawlNational(this.port, this.host, country, callback)
   }
 
   public listCrawlers(callback: (crawlers: any) => void) {

@@ -21,15 +21,34 @@ Open a terminal in an empty directory.
 
 You now have access to the CLI and can run Turbo Crawl with default settings. Refer to the [CLI documentation](https://github.com/sunnypurewal/tcrawl).
 
+## Usage
+```
+import { Server } from "turbocrawl"
+/* const { Server } = require("turbocrawl") */
+const server = new Server()
+server.listen(() => {
+  console.log("Turbo Crawl server is listening on port 8088)
+})
+```
+
+Now that the server is running, you can interact with it using the Client
+
+```
+import { Client } from "turbocrawl"
+/* const { Client } = require("turbocrawl") */
+const client = new Client(8088, "localhost")
+```
+
+
 ## Customization
 
 A crawler is an object that takes a domain name as input and discovers URLs to visit, fetches the HTML contents, scrapes data, then writes data out. A new crawler object is created for each domain that is crawled.
 
-There are 4 components to the Crawler pipeline.
+There are 4 components to a Crawler
 
 ![Turbo Crawl Pipeline](img/pipeline.png)
 
-And the 4 default components are:
+Each component has a default implementation
 
 ![Default Crawler Pipeline](img/default.png)
 
