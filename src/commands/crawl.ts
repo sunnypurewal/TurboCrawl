@@ -54,7 +54,6 @@ export default function crawl(port: number, host: string,
           // console.error(err)
         }
       }
-      console.log(body, callback)
       if (callback) {
         callback(res.statusCode!, body)
       }

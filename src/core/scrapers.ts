@@ -6,11 +6,11 @@ import { Transform, TransformCallback } from "stream"
  * and the html will stream to the Transform stream returned from create().
  * See MetadataScraper for a default implementation
  */
-export interface IScraper {
+export interface IScraperFactory {
   create(options?: any): Transform
 }
 
-export default class MetadataScraper implements IScraper {
+export default class MetadataScraper implements IScraperFactory {
   public create(options?: any): MetadataScrapeStream {
     return new MetadataScrapeStream(options)
   }

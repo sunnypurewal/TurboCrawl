@@ -3,7 +3,7 @@ import hittp from "hittp";
 import { v4 as uuidv4 } from "uuid"
 import { ICrawlConsumer } from "./consumers"
 import SitemapLinkDetector, {ILinkDetector} from "./detectors";
-import { IScraper } from "./scrapers"
+import { IScraperFactory } from "./scrapers"
 import MetadataScraper from "./scrapers";
 import HTTPURLHandler, {IURLHandler} from "./url_handlers";
 
@@ -12,7 +12,7 @@ export interface ICrawler extends EventEmitter {
   detector: ILinkDetector
   consumer: ICrawlConsumer
   urlHandler: IURLHandler
-  scraper: IScraper
+  scraper: IScraperFactory
   domain: URL
   start(): void
   pause(): void
@@ -34,13 +34,13 @@ export default class DomainCrawler extends EventEmitter implements ICrawler {
   public detector: ILinkDetector
   public consumer: ICrawlConsumer
   public urlHandler: IURLHandler
-  public scraper: IScraper
+  public scraper: IScraperFactory
   public id: string
   private linkCount: number = 0
   private responseCount: number = 0
   constructor(domain: URL,
               consumer: ICrawlConsumer,
-              scraper?: IScraper,
+              scraper?: IScraperFactory,
               detector?: ILinkDetector,
               urlHandler?: IURLHandler) {
       super()
