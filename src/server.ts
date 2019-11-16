@@ -206,9 +206,7 @@ export default class Server {
                 response.end()
               } else {
                 const domains = domainsFromFile(path)
-                if (domains && domains.length > 0) {
-                  const random = Math.floor(Math.random() * domains.length)
-                  const domain = new URL(domains[random].href)
+                for (const domain of domains) {
                   const crawler = this.crawlerFactory.create(domain)
                   this.crawlers.push(crawler)
                   crawler.on("exit", () => {
@@ -223,11 +221,6 @@ export default class Server {
                   crawler.start()
                   response.statusCode = 200
                   response.write(JSON.stringify({ url: domain.href, filepath: "./.turbocrawl/crawled" }))
-                  response.end()
-                } else {
-                  console.log("File is empty")
-                  response.statusCode = 404
-                  response.statusMessage = `File at ${path} is empty.`
                   response.end()
                 }
               }

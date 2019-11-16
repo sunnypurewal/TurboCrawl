@@ -1,27 +1,30 @@
 import { SiteMapper } from "getsitemap"
 import { str2url } from "hittp"
-import { PassThrough, Readable, Transform, TransformCallback, Writable } from "stream"
+import { Readable, Transform, TransformCallback, PassThrough } from "stream"
 
-export interface ILinkDetector extends Readable {
+export default class ILinkDetector extends PassThrough {
   domain: URL
   options?: any
-  getLinkCount(): number
+  getLinkCount(): number {
+    return 0
+  }
+  constructor(domain: URL, options?: any) {
+    super(options)
+    this.domain = domain
+    this.options = options
+  }
 }
 
-export default class SitemapLinkDetector extends PassThrough implements ILinkDetector {
-  public domain: URL
-  public options?: any
+export class SitemapLinkDetector extends ILinkDetector {
   private mapper: any
   private transformer: GetSitemapTransformStream
   constructor(domain: URL, options?: any) {
     options = options || {}
-    super(options)
+    super(domain, options)
     this.transformer = new GetSitemapTransformStream(options)
-    this.domain = domain
-    this.options = options
     this.mapper = new SiteMapper(domain.href)
     const sitemapstream = this.mapper.map(options.startDate, { cachePath: "./.turbocrawl/cache" })
-    sitemapstream.pipe(this).pipe(this.transformer)
+    sitemapstream.pipe(this.transformer).pipe(this)
   }
 
   public _destroy(error: Error | null, callback: (error: Error | null) => void) {

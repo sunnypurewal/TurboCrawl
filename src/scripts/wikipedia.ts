@@ -39,7 +39,7 @@ export default async function(callback?: (count: number) => void) {
   for (const country of countries) {
     let countryname: any = country.querySelectorAll("a")
     countryname = countryname[0].textContent
-    countryname = countryname.slice(0, countryname.indexOf("news websites")).trim()
+    countryname = countryname.slice(0, countryname.indexOf("news websites")).trim().toLowerCase()
     const path = `./.turbocrawl/default/countries/${countryname}`
     try {
       accessSync(path)

@@ -1,4 +1,4 @@
-import { Transform, TransformCallback } from "stream"
+import { Transform, TransformCallback, PassThrough } from "stream"
 
 /**
  * Scrapers must implement this one method that returns a transform stream.
@@ -6,20 +6,22 @@ import { Transform, TransformCallback } from "stream"
  * and the html will stream to the Transform stream returned from create().
  * See MetadataScraper for a default implementation
  */
-export interface IScraperFactory {
-  create(options?: any): Transform
+export default class IScraperFactory {
+  create(options?: any): Transform {
+    return new PassThrough()
+  }
 }
 
-export default class MetadataScraper implements IScraperFactory {
+export class MetadataScraper extends IScraperFactory {
   public create(options?: any): MetadataScrapeStream {
     return new MetadataScrapeStream(options)
   }
 }
 
 class MetadataScrapeStream extends Transform {
-  public open: any
-  public lastChunk: any
-  public chunks: Buffer[]
+  private open?: any
+  private lastChunk?: any
+  private chunks?: Buffer[]
   constructor(options?: any) {
     options = options || {}
     options.decodeStrings = false
@@ -30,12 +32,12 @@ class MetadataScrapeStream extends Transform {
   }
 
   public _transform(c: any, encoding: string, callback: TransformCallback) {
-    this.chunks.push(c)
+    this.chunks!.push(c)
     callback()
   }
 
   public _flush(callback: TransformCallback) {
-    const body: any = Buffer.concat(this.chunks).toString()
+    const body: any = Buffer.concat(this.chunks!).toString()
     const opens = body.matchAll(/<\s*meta/gi)
     this.open = opens.next()
     const metadata: any = {}

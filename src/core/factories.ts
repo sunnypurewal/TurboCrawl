@@ -1,4 +1,4 @@
-import FileConsumer from "./consumers"
+import { FileConsumer } from "./consumers"
 import DomainCrawler, { ICrawler } from "./crawlers"
 
 export interface ICrawlerFactory {

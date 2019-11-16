@@ -1,12 +1,12 @@
 import { createWriteStream } from "fs"
 import { Writable } from "stream";
 
-export interface ICrawlConsumer extends Writable {
-  domain: URL
+export default class ICrawlConsumer extends Writable {
+  domain: URL = new URL("https://github.com")
   options?: any
 }
 
-export default class FileConsumer extends Writable implements ICrawlConsumer {
+export class FileConsumer extends ICrawlConsumer {
   public domain: URL;
   public options?: any;
   public filestream: Writable

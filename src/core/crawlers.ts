@@ -1,10 +1,9 @@
 import { EventEmitter } from "events";
 import hittp from "hittp";
 import { v4 as uuidv4 } from "uuid"
-import { ICrawlConsumer } from "./consumers"
-import SitemapLinkDetector, {ILinkDetector} from "./detectors";
-import { IScraperFactory } from "./scrapers"
-import MetadataScraper from "./scrapers";
+import ICrawlConsumer from "./consumers"
+import ILinkDetector, {SitemapLinkDetector} from "./detectors";
+import IScraperFactory, { MetadataScraper } from "./scrapers"
 import HTTPURLHandler, {IURLHandler} from "./url_handlers";
 
 export interface ICrawler extends EventEmitter {
