@@ -1,5 +1,6 @@
 import { EventEmitter } from "events";
 import hittp from "hittp";
+import { Readable, Writable } from "stream";
 import { v4 as uuidv4 } from "uuid"
 import ICrawlConsumer from "./consumers"
 import ILinkDetector, {SitemapLinkDetector} from "./detectors";
@@ -9,7 +10,7 @@ import HTTPURLHandler, {IURLHandler} from "./url_handlers";
 export interface ICrawler extends EventEmitter {
   id: string
   detector: ILinkDetector
-  consumer: ICrawlConsumer
+  consumer: Writable
   urlHandler: IURLHandler
   scraper: IScraperFactory
   domain: URL
@@ -31,20 +32,20 @@ export interface ICrawler extends EventEmitter {
 export default class DomainCrawler extends EventEmitter implements ICrawler {
   public domain: URL
   public detector: ILinkDetector
-  public consumer: ICrawlConsumer
+  public consumer: Writable
   public urlHandler: IURLHandler
   public scraper: IScraperFactory
   public id: string
   private linkCount: number = 0
   private responseCount: number = 0
   constructor(domain: URL,
-              consumer: ICrawlConsumer,
+              consumer: Writable,
               scraper?: IScraperFactory,
               detector?: ILinkDetector,
               urlHandler?: IURLHandler) {
       super()
       this.domain = domain
-      const startDate = Date.now() - (60 * 60 * 24 * 2)
+      const startDate = new Date(Date.now() - (1000 * 60 * 60 * 24 * 2))
       this.detector = detector || new SitemapLinkDetector(this.domain, {startDate})
       this.consumer = consumer
       this.urlHandler = urlHandler || new HTTPURLHandler()
@@ -56,17 +57,7 @@ export default class DomainCrawler extends EventEmitter implements ICrawler {
     this.detector.on("data", (chunk) => {
       const chunkstring = chunk.toString()
       const url: URL = hittp.str2url(chunkstring.split("||")[0])
-      this.urlHandler.stream(url, (url, htmlstream, err) => {
-        if (htmlstream) {
-          const scraper = this.scraper.create()
-          htmlstream.pipe(scraper).pipe(this.consumer, {end: false})
-        }
-        this.responseCount += 1
-        if (this.responseCount === this.linkCount) {
-          this.consumer.destroy()
-          this.emit("exit")
-        }
-      })
+      this.handleURL(url)
     })
     /**
      * listen for hittp emptied event
@@ -79,6 +70,24 @@ export default class DomainCrawler extends EventEmitter implements ICrawler {
         this.emit("exit")
       }
     })
+  }
+
+  public handleURL(url: URL) {
+    this.urlHandler.stream(url, (url, htmlstream, err) => {
+      if (htmlstream) {
+        this.handleHTMLStream(htmlstream, url)
+      }
+      this.responseCount += 1
+      if (this.responseCount === this.linkCount) {
+        this.consumer.destroy()
+        this.emit("exit")
+      }
+    })
+  }
+
+  public handleHTMLStream(htmlstream: Readable, url: URL) {
+    const scraper = this.scraper.create({url})
+    htmlstream.pipe(scraper).pipe(this.consumer, {end: false})
   }
 
   public pause() {

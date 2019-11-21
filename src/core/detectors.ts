@@ -1,17 +1,17 @@
 import { SiteMapper } from "getsitemap"
 import { str2url } from "hittp"
-import { Readable, Transform, TransformCallback, PassThrough } from "stream"
+import { PassThrough, Readable, Transform, TransformCallback } from "stream"
 
 export default class ILinkDetector extends PassThrough {
   domain: URL
   options?: any
-  getLinkCount(): number {
-    return 0
-  }
   constructor(domain: URL, options?: any) {
     super(options)
     this.domain = domain
     this.options = options
+  }
+  getLinkCount(): number {
+    return 0
   }
 }
 
@@ -23,6 +23,7 @@ export class SitemapLinkDetector extends ILinkDetector {
     super(domain, options)
     this.transformer = new GetSitemapTransformStream(options)
     this.mapper = new SiteMapper(domain.href)
+    console.log(options.startDate)
     const sitemapstream = this.mapper.map(options.startDate, { cachePath: "./.turbocrawl/cache" })
     sitemapstream.pipe(this.transformer).pipe(this)
   }

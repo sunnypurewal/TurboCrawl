@@ -1,11 +1,11 @@
 import Client from "./client"
 import commands from "./commands"
-import Server from "./server"
 import core from "./core"
+import Server from "./server"
 
 export = {
   Client,
   Server,
   commands,
-  core
+  core,
 }

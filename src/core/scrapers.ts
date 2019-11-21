@@ -1,4 +1,4 @@
-import { Transform, TransformCallback, PassThrough } from "stream"
+import { PassThrough, Transform, TransformCallback } from "stream"
 
 /**
  * Scrapers must implement this one method that returns a transform stream.
@@ -7,7 +7,7 @@ import { Transform, TransformCallback, PassThrough } from "stream"
  * See MetadataScraper for a default implementation
  */
 export default class IScraperFactory {
-  create(options?: any): Transform {
+  public create(options?: any): Transform {
     return new PassThrough()
   }
 }
@@ -70,6 +70,7 @@ class MetadataScrapeStream extends Transform {
       this.push(JSON.stringify(metadata) + "\n")
     // tslint:disable-next-line: no-empty
     } catch (err) {}
+
     callback()
   }
 
