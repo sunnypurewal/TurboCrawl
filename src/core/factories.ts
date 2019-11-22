@@ -1,6 +1,5 @@
-import { FileConsumer } from "./consumers"
-import DomainCrawler, { ICrawler } from "./crawlers"
 import { createWriteStream } from "fs"
+import DomainCrawler, { ICrawler } from "./crawlers"
 
 export interface ICrawlerFactory {
   create(domain: URL): ICrawler

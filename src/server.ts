@@ -256,54 +256,54 @@ export default class Server {
           this.crawlers = []
           response.statusCode = 200
           response.end()
-        } else if (urlcopy === "/pauseall") {
-          this.crawlers.forEach((c) => c.pause())
-          this.crawlers = []
-          response.statusCode = 200
-          response.end()
-        } else if (urlcopy === "/resumeall") {
-          this.crawlers.forEach((c) => c.resume())
-          this.crawlers = []
-          response.statusCode = 200
-          response.end()
-        } else if (urlcopy === "/pause") {
-          const id = body.id
-          if (id && id.length > 0) {
-            const index = this.crawlers.findIndex((v) => {
-              return v.id === id
-            })
-            if (index !== -1) {
-              const paused = this.crawlers[index]
-              paused.pause()
-              response.statusCode = 200
-              response.end()
-            } else {
-              response.statusCode = 404
-              response.end()
-            }
-          } else {
-            response.statusCode = 400
-            response.end()
-          }
-        } else if (urlcopy === "/resume") {
-          const id = body.id
-          if (id && id.length > 0) {
-            const index = this.crawlers.findIndex((v) => {
-              return v.id === id
-            })
-            if (index !== -1) {
-              const deleted = this.crawlers.splice(index, 1)[0]
-              deleted.resume()
-              response.statusCode = 200
-              response.end()
-            } else {
-              response.statusCode = 404
-              response.end()
-            }
-          } else {
-            response.statusCode = 400
-            response.end()
-          }
+        // } else if (urlcopy === "/pauseall") {
+        //   this.crawlers.forEach((c) => c.pause())
+        //   this.crawlers = []
+        //   response.statusCode = 200
+        //   response.end()
+        // } else if (urlcopy === "/resumeall") {
+        //   this.crawlers.forEach((c) => c.resume())
+        //   this.crawlers = []
+        //   response.statusCode = 200
+        //   response.end()
+        // } else if (urlcopy === "/pause") {
+        //   const id = body.id
+        //   if (id && id.length > 0) {
+        //     const index = this.crawlers.findIndex((v) => {
+        //       return v.id === id
+        //     })
+        //     if (index !== -1) {
+        //       const paused = this.crawlers[index]
+        //       paused.pause()
+        //       response.statusCode = 200
+        //       response.end()
+        //     } else {
+        //       response.statusCode = 404
+        //       response.end()
+        //     }
+        //   } else {
+        //     response.statusCode = 400
+        //     response.end()
+        //   }
+        // } else if (urlcopy === "/resume") {
+        //   const id = body.id
+        //   if (id && id.length > 0) {
+        //     const index = this.crawlers.findIndex((v) => {
+        //       return v.id === id
+        //     })
+        //     if (index !== -1) {
+        //       const deleted = this.crawlers.splice(index, 1)[0]
+        //       deleted.resume()
+        //       response.statusCode = 200
+        //       response.end()
+        //     } else {
+        //       response.statusCode = 404
+        //       response.end()
+        //     }
+        //   } else {
+        //     response.statusCode = 400
+        //     response.end()
+        //   }
         } else if (urlcopy === "/generate") {
           const name = body.name
           if (name === "reddit") {

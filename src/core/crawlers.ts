@@ -1,22 +1,21 @@
 import { EventEmitter } from "events";
 import hittp from "hittp";
-import { Readable, Writable } from "stream";
+import { Readable, Transform, Writable } from "stream";
 import { v4 as uuidv4 } from "uuid"
-import ICrawlConsumer from "./consumers"
-import ILinkDetector, {SitemapLinkDetector} from "./detectors";
+import IDetectorFactory, {SitemapDetectorFactory} from "./detectors";
 import IScraperFactory, { MetadataScraper } from "./scrapers"
 import HTTPURLHandler, {IURLHandler} from "./url_handlers";
 
 export interface ICrawler extends EventEmitter {
   id: string
-  detector: ILinkDetector
+  detector: IDetectorFactory
   consumer: Writable
   urlHandler: IURLHandler
   scraper: IScraperFactory
   domain: URL
   start(): void
-  pause(): void
-  resume(): void
+  // pause(): void
+  // resume(): void
   exit(): void
 }
 
@@ -31,22 +30,22 @@ export interface ICrawler extends EventEmitter {
 
 export default class DomainCrawler extends EventEmitter implements ICrawler {
   public domain: URL
-  public detector: ILinkDetector
+  public detector: IDetectorFactory
   public consumer: Writable
   public urlHandler: IURLHandler
   public scraper: IScraperFactory
   public id: string
+  private detectorStreams: Readable[] = []
   private linkCount: number = 0
   private responseCount: number = 0
   constructor(domain: URL,
               consumer: Writable,
               scraper?: IScraperFactory,
-              detector?: ILinkDetector,
+              detector?: IDetectorFactory,
               urlHandler?: IURLHandler) {
       super()
       this.domain = domain
-      const startDate = new Date(Date.now() - (1000 * 60 * 60 * 24 * 2))
-      this.detector = detector || new SitemapLinkDetector(this.domain, {startDate})
+      this.detector = detector || new SitemapDetectorFactory()
       this.consumer = consumer
       this.urlHandler = urlHandler || new HTTPURLHandler()
       this.scraper = scraper || new MetadataScraper()
@@ -54,55 +53,59 @@ export default class DomainCrawler extends EventEmitter implements ICrawler {
   }
 
   public start() {
-    this.detector.on("data", (chunk) => {
-      const chunkstring = chunk.toString()
-      const url: URL = hittp.str2url(chunkstring.split("||")[0])
-      this.handleURL(url)
-    })
-    /**
-     * listen for hittp emptied event
-     */
-    this.detector.on("end", () => {
-      this.linkCount = this.detector.getLinkCount()
-      console.log("Detector detected", this.linkCount, "links")
-      if (this.linkCount === 0) {
-        this.consumer.destroy()
-        this.emit("exit")
-      }
-    })
+    const startDate = new Date(Date.now() - (1000 * 60 * 60 * 24 * 2)) // 2 days ago
+    const stream = this.detector.create(this.domain, {startDate})
+    this.handleURLStream(stream)
+    this.detectorStreams.push(stream)
+    // this.detector.on("data", (chunk) => {
+    //   const chunkstring = chunk.toString()
+    //   const url: URL = hittp.str2url(chunkstring.split("||")[0])
+    //   this.handleURL(url)
+    // })
+    // /**
+    //  * listen for hittp emptied event
+    //  */
   }
 
-  public handleURL(url: URL) {
-    this.urlHandler.stream(url, (url, htmlstream, err) => {
-      if (htmlstream) {
-        this.handleHTMLStream(htmlstream, url)
-      }
-      this.responseCount += 1
-      if (this.responseCount === this.linkCount) {
-        this.consumer.destroy()
-        this.emit("exit")
-      }
+  public handleURLStream(urlstream: Readable) {
+    urlstream.on("data", (url: URL) => {
+      this.urlHandler.stream(url, (url, htmlstream, err) => {
+        if (htmlstream) {
+          this.handleHTMLStream(htmlstream, url)
+        }
+        // this.responseCount += 1
+        // if (this.responseCount === this.linkCount) {
+        //   this.consumer.destroy()
+        //   this.emit("exit")
+        // }
+      })
+    })
+    urlstream.on("error", (err) => {
+      console.error("Error detecting URLS for", this.domain.href, err.message)
     })
   }
 
   public handleHTMLStream(htmlstream: Readable, url: URL) {
     const scraper = this.scraper.create({url})
     htmlstream.pipe(scraper).pipe(this.consumer, {end: false})
+    htmlstream.on("error", (err) => {
+      scraper.end()
+    })
   }
 
-  public pause() {
-    this.detector.pause()
-  }
+  // public pause() {
+  //   this.detector.pause()
+  // }
 
-  public resume() {
-    if (this.detector.listenerCount("data") > 0) {
-      this.detector.resume()
-    }
-  }
+  // public resume() {
+  //   if (this.detector.listenerCount("data") > 0) {
+  //     this.detector.resume()
+  //   }
+  // }
 
   public exit() {
-    this.consumer.destroy()
-    this.detector.destroy()
+    this.consumer.end()
+    this.detectorStreams.forEach((s) => s.destroy())
     this.emit("exit")
   }
 }
