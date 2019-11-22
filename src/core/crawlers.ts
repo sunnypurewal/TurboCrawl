@@ -53,8 +53,7 @@ export default class DomainCrawler extends EventEmitter implements ICrawler {
   }
 
   public start() {
-    const startDate = new Date(Date.now() - (1000 * 60 * 60 * 24 * 2)) // 2 days ago
-    const stream = this.detector.create(this.domain, {startDate})
+    const stream = this.detector.create(this.domain, {readableObjectMode: true})
     this.handleURLStream(stream)
     this.detectorStreams.push(stream)
     // this.detector.on("data", (chunk) => {

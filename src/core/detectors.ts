@@ -10,10 +10,9 @@ export default class IDetectorFactory {
 export class SitemapDetectorFactory implements IDetectorFactory {
   public create(domain: URL, options?: any): Readable {
     const mapper = new SiteMapper(domain.href)
-    return mapper.map(options.startDate, {
-      cachePath: "./.turbocrawl/cache",
-      onlyURLs: true,
-      readableObjectMode: true,
-    })
+    const startDate = new Date(Date.now() - (1000 * 60 * 60 * 24 * 2)) // 2 days ago
+    return mapper.map(startDate, Object.assign(options, {
+      cachePath: "./.turbocrawl/cache"
+    }))
   }
 }
