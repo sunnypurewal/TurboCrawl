@@ -218,10 +218,10 @@ export default class Server {
                     }
                   })
                   crawler.start()
-                  response.statusCode = 200
-                  response.write(JSON.stringify({ url: domain.href, filepath: "./.turbocrawl/crawled" }))
-                  response.end()
                 }
+                response.statusCode = 200
+                response.write(JSON.stringify({ filepath: "./.turbocrawl/crawled" }))
+                response.end()
               }
             })
           }
