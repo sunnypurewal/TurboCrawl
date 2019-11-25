@@ -3,12 +3,13 @@ import { access, mkdir, readdir } from "fs"
 import { str2url } from "hittp"
 import { createServer, IncomingMessage, ServerResponse } from "http"
 import { Socket } from "net"
-import { domainsFromFile } from "./commands/helpers"
-import { ICrawler } from "./core/crawlers"
-import DomainCrawlerFactory, {ICrawlerFactory} from "./core/factories"
-import { HOST, PORT } from "./env"
-import generateReddit from "./scripts/reddit"
-import generateWikipedia from "./scripts/wikipedia"
+import { domainsFromFile } from "../commands/helpers"
+import { ICrawler } from "../core/crawlers"
+import DomainCrawlerFactory, {ICrawlerFactory} from "../core/factories"
+import { HOST, PORT } from "../env"
+import generateReddit from "../scripts/reddit"
+import generateWikipedia from "../scripts/wikipedia"
+import Cluster from "./cluster"
 
 const log = console.log
 
@@ -25,6 +26,7 @@ export default class Server {
   private server = createServer()
   private Port: number
   private Host: string
+  private cluster: Cluster
   public get port(): number {
     return this.Port
   }
@@ -36,6 +38,7 @@ export default class Server {
     this.Port = port
     this.Host = host
     this.crawlerFactory = crawlerFactory
+    this.cluster = new Cluster()
     mkdir("./.turbocrawl/crawled", {recursive: true}, () => {
       mkdir("./.turbocrawl/default", {recursive: true}, () => {
         mkdir("./.turbocrawl/default/domains", {recursive: true}, () => {
@@ -137,6 +140,8 @@ export default class Server {
           log("Crawling", urls.length, urls.length > 1 ? "URLs" : "URL")
           const path = "./.turbocrawl/crawled"
           for (const url of urls) {
+            // TODO: Spawn the spider on the child process
+            this.cluster.doWork(url)
             const crawler = this.crawlerFactory.create(url)
             this.crawlers.push(crawler)
             crawler.on("exit", () => {
